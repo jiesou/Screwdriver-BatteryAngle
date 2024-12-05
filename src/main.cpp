@@ -11,90 +11,10 @@
 #include "ArduinoJson.h"
 #include "ArduinoOTA.h"
 #include "index_html.h"
-#define CF1 13
-#define BUTTON_PIN 2
-
-
-class CurrentProcessor
-{
-private:
-  static CurrentProcessor *instance;
-  volatile unsigned long pulse_interval = 0;
-  volatile unsigned int pulse_count = 0;
-  volatile unsigned long last_pulse_time = 0;
-  static void IRAM_ATTR CF1Interrupt()
-  {
-    unsigned long current_time = micros();
-    instance->pulse_interval = current_time - instance->last_pulse_time;
-    instance->last_pulse_time = current_time;
-    instance->pulse_count++;
-  }
-
-public:
-  volatile bool appliance_working = false;
-  volatile bool btn_pressed = false;
-  volatile unsigned int screw_count = 4;
-  const int CF1_PIN = 13;
-  const double FREQUENCY_THRESHOLD = 15.0;
-  unsigned long last_update_time = 0;
-
-  CurrentProcessor()
-  {
-    // 构造函数中保存实例指针
-    instance = this;
-  }
-
-  void begin()
-  {
-    pinMode(14, OUTPUT);
-    pinMode(BUTTON_PIN, INPUT_PULLUP);
-    pinMode(CF1_PIN, INPUT);
-    attachInterrupt(digitalPinToInterrupt(CF1_PIN), CurrentProcessor::CF1Interrupt, RISING);
-  }
-
-  void update()
-  {
-    unsigned long current_time = millis();
-    if (current_time - last_update_time < 100) return; // 100ms更新一次
-    last_update_time = current_time;
-
-    
-    unsigned int pulse_count_in_one_second = pulse_count * 10;
-    pulse_count = 0;
-    double frequency = 0;
-
-    if (pulse_count_in_one_second != 0)
-    {
-      frequency = 1000000.0 / pulse_interval;
-    }
-
-    if (frequency > FREQUENCY_THRESHOLD && !appliance_working)
-    {
-      appliance_working = true;
-      screw_count--;
-      if (screw_count == 0)
-      {
-        screw_count = 4;
-      }
-    }
-    else if (frequency <= FREQUENCY_THRESHOLD && appliance_working)
-    {
-      appliance_working = false;
-    }
-
-    btn_pressed = digitalRead(BUTTON_PIN) == LOW;
-  }
-
-  String getStatus()
-  {
-    return "{\"state\": " + String(pulse_count * 10) +
-           ", \"frequency\": " + String(pulse_interval > 0 ? 1000000.0 / pulse_interval : 0) + "}";
-  }
-};
+#include "CurrentProcessor.h"
 
 /* 电流解析处理 */
 CurrentProcessor current_processor;
-CurrentProcessor *CurrentProcessor::instance = nullptr; // 静态成员变量必须在类外部进行定义和初始化
 
 DNSServer dnsServer;
 AsyncWebServer server(80);
@@ -211,7 +131,7 @@ void initOTA()
   // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
 
   ArduinoOTA.onStart([]()
-                      {
+                     {
   String type;
   if (ArduinoOTA.getCommand() == U_FLASH) {
     type = "sketch";
@@ -222,11 +142,11 @@ void initOTA()
   // NOTE: if updating FS this would be the place to unmount FS using FS.end()
   Serial.println("Start updating " + type); });
   ArduinoOTA.onEnd([]()
-                    { Serial.println("\nEnd"); });
+                   { Serial.println("\nEnd"); });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total)
                         { Serial.printf("Progress: %u%%\r", (progress / (total / 100))); });
   ArduinoOTA.onError([](ota_error_t error)
-                      {
+                     {
   Serial.printf("Error[%u]: ", error);
   if (error == OTA_AUTH_ERROR) {
     Serial.println("Auth Failed");
@@ -281,7 +201,7 @@ void initSoftAP()
 
   // 由于我们使用了强制门户技术，为避免一些合理的请求也被重定向，因而要有一个过滤表
   server.addHandler(new CaptiveRequestHandler()).setFilter([](AsyncWebServerRequest *request)
-                                                            {
+                                                           {
   // 忽略 /toggle, /status, 和 /settings 请求
     String url = request->url();
     return !(url.startsWith("/toggle") || url.startsWith("/set_ap") || \
