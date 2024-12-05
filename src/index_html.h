@@ -48,23 +48,29 @@ const char index_html[] PROGMEM = R"rawliteral(
       fetch('/status')
         .then(response => response.json())
         .then(data => {
-          const statusElement = document.getElementById("status");
-          if (data.sta_connected) {
-            statusElement.textContent = `STA connected! IP: ${data.ip}`;
-            statusElement.style.color = "green";
-          } else if (data.sta_error) {
-            statusElement.textContent = "STA connection failed! Please check your settings.";
-            statusElement.style.color = "red";
-          } else {
-            statusElement.textContent = "Waiting for STA connection...";
-            statusElement.style.color = "orange";
-          }
+            const status = document.getElementById("status");
+            let message = "Waiting for STA connection...";
+            let color = "orange";
+            
+            if (data.sta_connected) {
+            message = `STA connected! IP: ${data.ip}`;
+            color = "green";
+            } else if (data.sta_error) {
+            message = "STA connection failed!";
+            color = "red";
+            }
+
+            message += ` (${data.is_working ? "拧螺丝中" : "未拧螺丝"})`;
+            message += ` (${data.btn_pressed ? "按钮按下" : "按钮未按下"})`;
+            
+            status.textContent = message;
+            status.style.color = color;
         })
         .catch(error => console.error("Error fetching status:", error));
     }
 
     window.onload = loadConfig; // 页面开启就去读上一个正确配置
-    setInterval(checkStatus, 3000); // Poll status every 3 seconds
+    setInterval(checkStatus, 300); // Poll status every 3 seconds
   </script>
 </head>
 <body>
