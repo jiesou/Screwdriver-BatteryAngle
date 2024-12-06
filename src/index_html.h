@@ -44,10 +44,22 @@ const char index_html[] PROGMEM = R"rawliteral(
       .catch(error => console.error("Error:", error));
     }
 
-    function checkStatus() {
-      fetch('/status')
-        .then(response => response.json())
-        .then(data => {
+    async function readStatus() {
+      const response = await fetch('/status')
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
             const status = document.getElementById("status");
             let message = "Waiting for STA connection...";
             let color = "orange";
@@ -59,18 +71,21 @@ const char index_html[] PROGMEM = R"rawliteral(
             message = "STA connection failed!";
             color = "red";
             }
-
-            message += ` (${data.is_working ? "拧螺丝中" : "未拧螺丝"})`;
+  
+            message += ` (频率: ${data.frequency})`;
             message += ` (${data.btn_pressed ? "按钮按下" : "按钮未按下"})`;
             
             status.textContent = message;
             status.style.color = color;
-        })
-        .catch(error => console.error("Error fetching status:", error));
+          } catch (error) {
+            console.error("Error parsing status:", error);
+          }
+        }
+      }
     }
 
     window.onload = loadConfig; // 页面开启就去读上一个正确配置
-    setInterval(checkStatus, 300); // Poll status every 3 seconds
+    readStatus(); // 页面开启就去读状态
   </script>
 </head>
 <body>

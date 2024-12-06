@@ -3,10 +3,10 @@
 CurrentProcessor* CurrentProcessor::instance = nullptr;
 
 void IRAM_ATTR CurrentProcessor::CF1Interrupt() {
-    unsigned long current_time = micros();
-    instance->pulse_interval = current_time - instance->last_pulse_time;
-    instance->last_pulse_time = current_time;
-    instance->pulse_count++;
+    volatile unsigned long current_millis = millis();
+    instance->pulse_interval = current_millis - instance->last_pulse_time;
+    instance->last_pulse_time = current_millis;
+    ++instance->pulse_count;
 }
 
 CurrentProcessor::CurrentProcessor() {
@@ -21,19 +21,21 @@ void CurrentProcessor::begin() {
 }
 
 void CurrentProcessor::update() {
-    unsigned long current_time = millis();
-    if (current_time - last_update_time < 100)
+    // 100ms 更新一次
+    unsigned long current_millis = millis();
+    if (current_millis - last_update_time < 100)
         return;
-    last_update_time = current_time;
+    last_update_time = current_millis;
 
-    unsigned int pulse_count_in_one_second = pulse_count * 10;
-    pulse_count = 0;
-    double frequency = 0;
 
-    if (pulse_count_in_one_second != 0) {
-        frequency = 1000000.0 / pulse_interval;
+    if (pulse_count != 0) {
+        frequency = 1000.0 / pulse_interval;
+    } else {
+        frequency = 0;
     }
+    pulse_count = 0;
 
+    //  内部计数
     if (frequency > FREQUENCY_THRESHOLD && !appliance_working) {
         appliance_working = true;
         screw_count--;
@@ -45,10 +47,6 @@ void CurrentProcessor::update() {
         appliance_working = false;
     }
 
+    // 插座按钮状态
     btn_pressed = digitalRead(BUTTON_PIN) == LOW;
-}
-
-String CurrentProcessor::getStatus() {
-    return "{\"state\": " + String(pulse_count * 10) +
-           ", \"frequency\": " + String(pulse_interval > 0 ? 1000000.0 / pulse_interval : 0) + "}";
 }
