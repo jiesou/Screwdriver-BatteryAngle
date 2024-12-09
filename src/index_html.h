@@ -59,7 +59,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
         for (const line of lines) {
           try {
-            const data = JSON.parse(line);
+            const data = JSON.parse(line.replace(/^data: /, ''));
             const status = document.getElementById("status");
             let message = "Waiting for STA connection...";
             let color = "orange";

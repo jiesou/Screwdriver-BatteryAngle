@@ -18,6 +18,8 @@ CurrentProcessor current_processor;
 
 DNSServer dnsServer;
 AsyncWebServer server(80);
+// 用于处理 status api http 流的全局变量
+AsyncEventSource *status_stream_events = new AsyncEventSource("/status");
 
 struct WiFiconfig
 {
@@ -206,6 +208,10 @@ void initSoftAP()
     String url = request->url();
     return !(url.startsWith("/toggle") || url.startsWith("/set_ap") || \
     url.startsWith("/settings")|| url.startsWith("/status")||url.startsWith("/get_config")); });
+
+  // stream_event 只需添加一次 handler
+  server.addHandler(status_stream_events);
+
   // more handlers...
   server.on("/toggle", HTTP_GET, [](AsyncWebServerRequest *request)
             {
@@ -255,34 +261,14 @@ void initSoftAP()
 
   server.on("/status", HTTP_GET, [](AsyncWebServerRequest *request)
             {
-    AsyncEventSource* events = new AsyncEventSource("/status");
-    server.addHandler(events);
-    
-    AsyncEventSourceResponse* response = new AsyncEventSourceResponse(events);
-    response->addHeader("Access-Control-Allow-Origin", "*");
-    request->send(response);
 
-    events->onConnect([](AsyncEventSourceClient *client) {
-      if(client->lastId()) {
-        Serial.printf("Client reconnected! Last message ID: %u\n", client->lastId());
-      }
-      
-      // 以 http 流的形式推送数据
-      static unsigned long last_pushupdate_time = 0;
-      if (millis() - last_pushupdate_time < 100) return;
-      JsonDocument doc;
-      doc["sta_connected"] = wificonfig.connStatus;
-      doc["sta_error"] = !wificonfig.connStatus;
-      doc["ip"] = WiFi.localIP().toString();
-      doc["frequency"] = current_processor.frequency;
-      doc["btn_pressed"] = current_processor.btn_pressed;
-      
-      String output;
-      serializeJson(doc, output);
-      client->send(output.c_str());
-      
-      last_pushupdate_time = millis();
-    }); });
+            // 连接处理仅记录连接事件
+            status_stream_events->onConnect([](AsyncEventSourceClient *client)
+                                            {
+              if(client->lastId()) {
+                  Serial.printf("Client reconnected! Last message ID: %u\n", client->lastId());
+              } });
+              request->send(200, "text/event-stream", "data: {}"); });
 
   server.on("/get_config", HTTP_GET, [](AsyncWebServerRequest *request)
             {
@@ -337,4 +323,28 @@ void loop()
     ArduinoOTA.handle(); // OTA服务runtime
 
   current_processor.update(); // 电流解析处理runtime
+
+  static unsigned long last_pushupdate_time = 0;
+  if (millis() - last_pushupdate_time > 100)
+  { // 每100ms更新一次
+    JsonDocument doc;
+    doc["sta_connected"] = wificonfig.connStatus;
+    doc["sta_error"] = !wificonfig.connStatus;
+    doc["ip"] = WiFi.localIP().toString();
+    doc["frequency"] = current_processor.frequency;
+    doc["btn_pressed"] = current_processor.btn_pressed;
+
+    String output;
+    serializeJson(doc, output);
+
+    Serial.println(status_stream_events->count());
+
+    // 向所有连接的客户端发送更新
+    if (status_stream_events->count() > 0)
+    { // 如果有连接的客户端
+      status_stream_events->send(output.c_str());
+    }
+
+    last_pushupdate_time = millis();
+  }
 }
