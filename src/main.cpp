@@ -294,7 +294,7 @@ void setup() {
   }
 
   current_processor.begin();
-  tone(12, 1000);
+  tone(13, 1000);
 }
 
 void loop() {

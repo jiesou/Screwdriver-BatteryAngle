@@ -2,7 +2,7 @@
 #define CURRENT_PROCESSOR_H
 
 #include <Arduino.h>
-#define CF1_PIN 13
+#define CF1_PIN 12
 #define BUTTON_PIN 2
 #define FREQUENCY_THRESHOLD 15.0
 
