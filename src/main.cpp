@@ -9,7 +9,6 @@
 #include "ArduinoOTA.h"
 #include "ESPAsyncWebServer.h"
 #include "LittleFS.h" //我们把网页藏在LittleFS内
-#include "index_html.h"
 #include "StoredConfig.h"
 #include "ota/CaptivePortal.h"
 #include "ota/OTAHandler.h"
@@ -20,22 +19,6 @@ AsyncWebServer server(80);
 CaptivePortal captivePortal;
 OTAHandler otaHandler;
 CurrentProcessor currentProcessor;
-
-
-class CaptiveRequestHandler : public AsyncWebHandler {
-public:
-  CaptiveRequestHandler() {}
-  virtual ~CaptiveRequestHandler() {}
-
-  bool canHandle(AsyncWebServerRequest *request) {
-    // request->addInterestingHeader("ANY");
-    return true;
-  }
-
-  void handleRequest(AsyncWebServerRequest *request) {
-    request->send(200, "text/html", index_html);
-  }
-};
 
 // Initialize LittleFS
 void initLittleFS() {

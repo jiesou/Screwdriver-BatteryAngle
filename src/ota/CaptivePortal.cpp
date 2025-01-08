@@ -1,6 +1,5 @@
 #include "CaptivePortal.h"
 #include "LittleFS.h"
-#include "index_html.h"
 #include "ArduinoJson.h"
 #include "StoredConfig.h"
 
@@ -9,7 +8,7 @@ CaptivePortal::CaptivePortal()
   , status_stream_events("/status") {}
 
 void CaptivePortal::CaptiveRequestHandler::handleRequest(AsyncWebServerRequest *request) {
-  request->send(200, "text/html", index_html);
+  request->send(LittleFS, "/index.html", "text/html");
 }
 
 void CaptivePortal::begin() {
@@ -56,16 +55,15 @@ void CaptivePortal::handleRequests() {
          size_t index, size_t total) {
         JsonDocument doc;
         deserializeJson(doc, data, len);
-        String mode = doc["mode"];
-        String ssid = doc["ssid"];
-        String password = doc["password"];
-        Serial.printf("Mode: %s, SSID: %s, Password: %s\n", mode.c_str(),
-                      ssid.c_str(), password.c_str());
+        String ssid = doc["wifi_sta_ssid"];
+        String password = doc["wifi_sta_password"];
+        Serial.printf("SSID: %s, Password: %s\n", ssid.c_str(), password.c_str());
         stored_config.wifi_sta_ssid = ssid;
         stored_config.wifi_sta_password = password;
         stored_config.config_renewed = true;
+
         JsonDocument response;
-        response["message"] = "AP mode and credentials set successfully!";
+        response["message"] = "公共 WiFi 配置已更新";
         String responseBody;
         serializeJson(response, responseBody);
         request->send(200, "application/json", responseBody);
