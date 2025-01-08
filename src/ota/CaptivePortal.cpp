@@ -17,11 +17,7 @@ void CaptivePortal::begin() {
   handleRequests();
 }
 
-void CaptivePortal::update() {
-  dnsServer.processNextRequest();
-}
-
-void CaptivePortal::notifyStatusChange(bool sta_connected, const String& ip, 
+void CaptivePortal::updateStatusChange(bool sta_connected, const String& ip, 
                                    float frequency, bool btn_pressed) {
   // 检查有客户端连接
   if(status_stream_events.count() > 0) {
@@ -39,8 +35,8 @@ void CaptivePortal::notifyStatusChange(bool sta_connected, const String& ip,
 }
 
 void CaptivePortal::initSoftAP() {
-  WiFi.softAP("Socket");
-  dnsServer.start(53, "*", WiFi.softAPIP());
+  String apName = "BatteryAngle_" + String((uint32_t)ESP.getChipId(), HEX);
+  WiFi.softAP(apName.c_str());
   server.serveStatic("/", LittleFS, "/");
 
   server.addHandler(new CaptiveRequestHandler())
@@ -65,9 +61,9 @@ void CaptivePortal::handleRequests() {
         String password = doc["password"];
         Serial.printf("Mode: %s, SSID: %s, Password: %s\n", mode.c_str(),
                       ssid.c_str(), password.c_str());
-        storedConfig.wifi_sta_ssid = ssid;
-        storedConfig.wifi_sta_password = password;
-        storedConfig.config_renewed = true;
+        stored_config.wifi_sta_ssid = ssid;
+        stored_config.wifi_sta_password = password;
+        stored_config.config_renewed = true;
         JsonDocument response;
         response["message"] = "AP mode and credentials set successfully!";
         String responseBody;

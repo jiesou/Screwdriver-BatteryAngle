@@ -54,3 +54,4 @@ StoredConfig::StoredConfig() {
   }
 }
 
+StoredConfig stored_config;

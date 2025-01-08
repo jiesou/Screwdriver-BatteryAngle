@@ -17,4 +17,4 @@ public:
   bool connStatus = false;
 };
 
-extern StoredConfig storedConfig;
+extern StoredConfig stored_config;

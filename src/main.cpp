@@ -7,17 +7,16 @@
 #endif
 #include "ArduinoJson.h"
 #include "ArduinoOTA.h"
-#include "CurrentProcessor.h"
 #include "ESPAsyncWebServer.h"
 #include "LittleFS.h" //我们把网页藏在LittleFS内
 #include "index_html.h"
-#include "ota/CaptivePortal.h"
 #include "StoredConfig.h"
+#include "ota/CaptivePortal.h"
 #include "ota/OTAHandler.h"
+#include "CurrentProcessor.h"
 
 AsyncWebServer server(80);
 
-StoredConfig stored_config;
 CaptivePortal captivePortal;
 OTAHandler otaHandler;
 CurrentProcessor currentProcessor;
@@ -56,8 +55,8 @@ void onWiFiEvent(WiFiEvent_t event) {
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
     stored_config.connStatus = true;
-    storedConfig.save();
-    OTAHandler::begin(); // 改用 OTAHandler
+    stored_config.save();
+    otaHandler.begin();
     break;
   case WIFI_EVENT_STAMODE_DISCONNECTED:
     stored_config.connStatus = false;
@@ -86,7 +85,6 @@ void setup() {
 }
 
 void loop() {
-  captivePortal.update();
   
   if (stored_config.config_renewed == true) {
     stored_config.config_renewed = false;
@@ -94,14 +92,14 @@ void loop() {
   }
   
   if (stored_config.connStatus == true) {
-    otaHandler.update(); // 改用 OTAHandler
+    otaHandler.update();
   }
 
   currentProcessor.update();
 
   static unsigned long last_pushupdate_time = 0;
   if (millis() - last_pushupdate_time > 100) {
-    captivePortal.notifyStatusChange(
+    captivePortal.updateStatusChange(
       stored_config.connStatus,
       WiFi.localIP().toString(),
       currentProcessor.frequency,

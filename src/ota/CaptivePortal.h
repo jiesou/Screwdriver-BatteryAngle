@@ -6,10 +6,9 @@ class CaptivePortal {
 public:
   CaptivePortal();
   void begin();
-  void update();
   
   // 得到 status 更新
-  void notifyStatusChange(bool sta_connected, const String& ip, 
+  void updateStatusChange(bool sta_connected, const String& ip, 
                        float frequency, bool btn_pressed);
   
 private:
@@ -22,7 +21,6 @@ private:
     void handleRequest(AsyncWebServerRequest *request) override;
   };
 
-  DNSServer dnsServer;
   AsyncWebServer server;
   AsyncEventSource status_stream_events;
   
