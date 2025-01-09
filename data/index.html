@@ -18,9 +18,16 @@
       margin: 16px 0;
     }
 
+    .status-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     #status {
-      margin-top: 20px;
-      padding: 16px;
+      flex: 1;
+      margin-top: 0;
+      padding: 8px;
     }
   </style>
 </head>
@@ -41,8 +48,23 @@
         </mdui-card-content>
       </mdui-card>
 
-      <mdui-card id="status" class="status-card" style="flex: 1;">
-        <span>公用 WiFi 连接中...</span>
+      <mdui-card class="status-card" style="flex: 1;">
+        <mdui-card-content style="padding-left: 10px; display: block;">
+          <div style="display: flex; align-items: center;">
+            <h3>状态</h3>
+            <mdui-button-icon id="reconnect">
+              <!-- https://icons.getbootstrap.com/icons refresh icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" />
+                <path
+                  d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" />
+              </svg>
+            </mdui-button-icon>
+          </div>
+          <div class="status-container">
+            <span id="status">公用 WiFi 状态待更新</span>
+          </div>
+        </mdui-card-content>
       </mdui-card>
     </div>
   </div>
@@ -52,8 +74,8 @@
       fetch('/get_config')
         .then(response => response.json())
         .then(data => {
-          if (data.ssid) document.getElementById("wifi_sta_ssid").value = data.ssid;
-          if (data.password) document.getElementById("wifi_sta_password").value = data.password;
+          document.getElementById("wifi_sta_ssid").value = data['wifi_sta_ssid'];
+          document.getElementById("wifi_sta_password").value = data['wifi_sta_password'];
         })
         .catch(error => console.error("Error loading config:", error));
     }
@@ -74,11 +96,14 @@
         .catch(error => console.error("Error:", error));
     }
 
-    async function readStatus() {
+    async function readStatus(callback=()=>{}) {
       const response = await fetch('/status')
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+
+      // connect success
+      callback();
 
       while (true) {
         const { done, value } = await reader.read();
@@ -89,6 +114,7 @@
 
         for (const line of lines) {
           try {
+            if (line === "\r") continue;
             const data = JSON.parse(line.replace(/^data: /, ''));
             const status = document.getElementById("status");
             let message = "公用 WiFi 连接中...";
@@ -113,9 +139,17 @@
       }
     }
 
-    window.onload = loadConfig;
+    loadConfig();
     readStatus();
+
+    document.getElementById("reconnect").addEventListener("click", (v) => {
+      document.getElementById("reconnect").setAttribute("loading", "true");
+      readStatus(() => {
+        document.getElementById("reconnect").removeAttribute("loading");
+      });
+    });
   </script>
+
 </body>
 
 </html>

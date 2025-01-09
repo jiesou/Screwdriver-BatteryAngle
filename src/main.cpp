@@ -43,6 +43,7 @@ void onWiFiEvent(WiFiEvent_t event) {
     break;
   case WIFI_EVENT_STAMODE_DISCONNECTED:
     stored_config.connStatus = false;
+    stored_config.config_renewed = false;
     Serial.println("Disconnected from Wi-Fi.");
     break;
   default:
@@ -71,6 +72,7 @@ void loop() {
   
   if (stored_config.config_renewed == true) {
     stored_config.config_renewed = false;
+    Serial.println("Trying to connect to Wi-Fi with new credentials");
     initSTA(stored_config.wifi_sta_ssid, stored_config.wifi_sta_password);
   }
   

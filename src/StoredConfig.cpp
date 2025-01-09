@@ -10,41 +10,39 @@ bool StoredConfig::save() {
     return false;
   }
 
-  JsonDocument doc;
   // 更新 JsonDocument
-  doc["wifi_sta_ssid"] = wifi_sta_ssid;
-  doc["wifi_sta_password"] = wifi_sta_password;
-  serializeJson(doc, file);
+  json["wifi_sta_ssid"] = wifi_sta_ssid;
+  json["wifi_sta_password"] = wifi_sta_password;
+  serializeJson(json, file);
   file.close();
 
   Serial.println("Config saved");
   return true;
 }
 
-bool StoredConfig::load() {
+JsonDocument StoredConfig::load() {
   if (!LittleFS.exists(STORED_PATH)) {
     Serial.println("No WiFi Config found, using default values");
-    return false;
+    // return emtpy json
+    return json;
   };
   File file = LittleFS.open(STORED_PATH, "r");
   if (!file) {
     Serial.println("Failed to open file for reading");
-    return false;
+    return json;
   }
 
-  // 从 JsonDocument 中读取
-  JsonDocument doc;
-  DeserializationError error = deserializeJson(doc, file);
+  DeserializationError error = deserializeJson(json, file);
   if (error) {
     Serial.println("Failed to parse JSON");
-    return false;
+    return json;
   }
-  wifi_sta_ssid = doc["wifi_sta_ssid"].as<String>();
-  wifi_sta_password = doc["wifi_sta_password"].as<String>();
+  wifi_sta_ssid = json["wifi_sta_ssid"].as<String>();
+  wifi_sta_password = json["wifi_sta_password"].as<String>();
   file.close();
 
   Serial.println("Config loaded");
-  return true;
+  return json;
 }
 
 StoredConfig::StoredConfig() {
