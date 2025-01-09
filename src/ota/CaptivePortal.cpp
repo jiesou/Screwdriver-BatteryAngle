@@ -11,8 +11,8 @@ void CaptivePortal::CaptiveRequestHandler::handleRequest(
 }
 
 void CaptivePortal::begin() {
-  initSoftAP();
-  handleRequests();
+  setupWebServer();
+  setupRequestHandlers();
 }
 
 void CaptivePortal::updateStatusChange(bool sta_connected, const String &ip,
@@ -32,23 +32,19 @@ void CaptivePortal::updateStatusChange(bool sta_connected, const String &ip,
   }
 }
 
-void CaptivePortal::initSoftAP() {
-  // 为设备 AP 创建一个唯一的 SSID
-  String apName = "BatteryAngle_" + String((uint32_t)ESP.getChipId(), HEX);
-  WiFi.softAP(apName.c_str());
-  server.serveStatic("/", LittleFS, "/");
 
+void CaptivePortal::setupWebServer() {
+  server.serveStatic("/", LittleFS, "/");
   server.addHandler(new CaptiveRequestHandler())
       .setFilter([](AsyncWebServerRequest *request) {
         String url = request->url();
-        Serial.println(url);
         return url == "/" || url == "/index.html";
       });
-
   server.addHandler(&status_stream_events);
+  server.begin();
 }
 
-void CaptivePortal::handleRequests() {
+void CaptivePortal::setupRequestHandlers() {
   server.on(
       "/set_wifi_ssid_and_passwd", HTTP_POST,
       [](AsyncWebServerRequest *request) {}, NULL,
