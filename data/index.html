@@ -41,9 +41,15 @@
     <div style="display: flex; gap: 16px;">
       <mdui-card class="config-card" style="flex: 1;">
         <mdui-card-content style="padding: 8px; gap: 10px; display: grid;">
-          <mdui-text-field id="wifi_sta_ssid" label="SSID" variant="outlined"></mdui-text-field>
-          <mdui-text-field id="wifi_sta_password" label="Password" type="password" variant="outlined"
+          <mdui-dropdown trigger="hover">
+            <mdui-text-field slot="trigger" id="wifi_sta_ssid" label="WiFi 网络名称（SSID）" variant="outlined"></mdui-text-field>
+            <mdui-menu id="wifi-ssid-menu">
+              <mdui-menu-item>WiFi 扫描中……</mdui-menu-item>
+            </mdui-menu>
+          </mdui-dropdown>
+          <mdui-text-field id="wifi_sta_password" label="WiFi 网络密码  " type="password" variant="outlined"
             toggle-password></mdui-text-field>
+          <mdui-checkbox id="wifi_sta_auto-connect" label="上电自动连接" />
           <mdui-button onclick="submitForm()">提交</mdui-button>
         </mdui-card-content>
       </mdui-card>
@@ -128,8 +134,8 @@
               color = "var(--mdui-color-error)";
             }
 
-            message += ` (频率: ${data.frequency})`;
-            message += ` (${data.btn_pressed ? "按钮按下" : "按钮未按下"})`;
+            message += ` 频率: ${data.frequency}`;
+            message += ` ${data.btn_pressed ? "按钮按下" : "按钮未按下"}`;
 
             status.innerHTML = `<span style="color: ${color}">${message}</span>`;
           } catch (error) {
@@ -147,6 +153,23 @@
       readStatus(() => {
         document.getElementById("reconnect").removeAttribute("loading");
       });
+    });
+
+    document.getElementById("wifi_sta_ssid").addEventListener("mouseenter", async () => {
+      const response = await fetch('/fetch_nearby_wifi_ssids');
+      const data = await response.json();
+      const menu = document.getElementById("wifi-ssid-menu");
+      menu.innerHTML = "";
+      data.forEach(ssid => {
+        const item = document.createElement("mdui-menu-item");
+        item.innerHTML = ssid;
+        item.addEventListener("click", () => {
+          document.getElementById("wifi_sta_ssid").value = ssid;
+          mdui.mutation('#wifi-ssid-menu').close();
+        });
+        menu.appendChild(item);
+      });
+      mdui.mutation('#wifi-ssid-menu').open();
     });
   </script>
 

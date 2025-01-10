@@ -63,6 +63,38 @@ void CaptivePortal::setupRequestHandlers() {
         request->send(200, "application/json",
                       "{\"message\":\"公共 WiFi 配置已更新\"}");
       });
+    
+    server.on("/fetch_nearby_wifi_ssids", HTTP_GET, [](AsyncWebServerRequest *request) {
+      Serial.println("Fetching nearby WiFi SSIDs");
+      // 保存请求对象以在回调中使用
+      static AsyncWebServerRequest *storedRequest = nullptr;
+      storedRequest = request;
+
+      // 启动异步扫描
+      WiFi.scanNetworksAsync([](int availableSsidCount) {
+        if (!storedRequest)
+          return;
+
+        // 限制返回数量为 8 条
+        if (availableSsidCount > 8)
+          availableSsidCount = 8;
+
+        JsonDocument doc;
+        JsonArray array = doc.to<JsonArray>();
+
+        for (int i = 0; i < availableSsidCount; i++) {
+          array.add(WiFi.SSID(i));
+        }
+
+        String output;
+        serializeJson(doc, output);
+        storedRequest->send(200, "application/json", output.c_str());
+        storedRequest = nullptr;
+
+        // 清理扫描结果
+        WiFi.scanDelete();
+      });
+    });
 
   server.on("/status", HTTP_GET, [this](AsyncWebServerRequest *request) {
     status_stream_events.onConnect([](AsyncEventSourceClient *client) {

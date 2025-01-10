@@ -6,7 +6,7 @@
 bool StoredConfig::save() {
   File file = LittleFS.open(STORED_PATH, "w");
   if (!file) {
-    Serial.println("Failed to open file for writing");
+    Serial.println("[StoredConfig] Failed to open file for writing");
     return false;
   }
 
@@ -16,32 +16,32 @@ bool StoredConfig::save() {
   serializeJson(json, file);
   file.close();
 
-  Serial.println("Config saved");
+  Serial.println("[StoredConfig] Config saved");
   return true;
 }
 
 JsonDocument StoredConfig::load() {
   if (!LittleFS.exists(STORED_PATH)) {
-    Serial.println("No WiFi Config found, using default values");
+    Serial.println("[StoredConfig] No WiFi Config found, using default values");
     // return emtpy json
     return json;
   };
   File file = LittleFS.open(STORED_PATH, "r");
   if (!file) {
-    Serial.println("Failed to open file for reading");
+    Serial.println("[StoredConfig] Failed to open file for reading");
     return json;
   }
 
   DeserializationError error = deserializeJson(json, file);
   if (error) {
-    Serial.println("Failed to parse JSON");
+    Serial.println("[StoredConfig] Failed to parse JSON");
     return json;
   }
   wifi_sta_ssid = json["wifi_sta_ssid"].as<String>();
   wifi_sta_password = json["wifi_sta_password"].as<String>();
   file.close();
 
-  Serial.println("Config loaded");
+  Serial.println("[StoredConfig] Config loaded");
   return json;
 }
 
