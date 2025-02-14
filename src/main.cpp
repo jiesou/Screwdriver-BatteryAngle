@@ -22,7 +22,6 @@ CaptivePortal captivePortal;
 OTAHandler otaHandler;
 CurrentProcessor currentProcessor;
 
-
 void setup() {
   Serial.begin(74880);
 
@@ -32,6 +31,8 @@ void setup() {
   Serial.println("===File system mounted===");
   wifiManager.startAP();
   Serial.println("===AP started===");
+  otaHandler.begin();
+  Serial.println("===OTA Service started===");
   captivePortal.begin();
   Serial.println("===Captive Portal started===");
   currentProcessor.begin();
@@ -42,7 +43,6 @@ void setup() {
     Serial.println("IP: " + wifiManager.getLocalIP());
     stored_config.connStatus = true;
     stored_config.save();
-    otaHandler.begin();
   });
   wifiManager.onDisconnect([]() {
     stored_config.connStatus = false;
@@ -58,15 +58,17 @@ void loop() {
     wifiManager.connectToWiFi(stored_config.wifi_sta_ssid,
                               stored_config.wifi_sta_password);
   }
-  if (wifiManager.isConnected()) otaHandler.update();
-  
+  Serial.println("===[Loop] WiFi config checked===");
+  otaHandler.update();
+  Serial.println("===[Loop] OTA Service updated===");
   currentProcessor.update();
-
+  Serial.println("===[Loop] Current Processor updated===");
   static unsigned long last_pushupdate_time = 0;
   if (millis() - last_pushupdate_time > 100) {
     captivePortal.updateStatusChange(
         stored_config.connStatus, WiFi.localIP().toString(),
         currentProcessor.frequency, currentProcessor.btn_pressed);
     last_pushupdate_time = millis();
+    Serial.println("===[Loop] Captive Portal status api updated===");
   }
 }

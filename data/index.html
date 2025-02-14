@@ -34,7 +34,7 @@
 
 <body class="mdui-theme-auto">
   <mdui-top-app-bar>
-    <mdui-top-app-bar-title>BatteryAngle 配置</mdui-top-app-bar-title>
+    <mdui-top-app-bar-title>BatteryAngle 配置 111</mdui-top-app-bar-title>
   </mdui-top-app-bar>
 
   <div class="main-content">
@@ -103,7 +103,12 @@
     }
 
     async function readStatus(callback=()=>{}) {
-      const response = await fetch('/status')
+      // 新 status 连接建立后，把老的连接断开，防止多重请求对后端造成压力
+      if (window.statusController) {
+        window.statusController.abort();
+      }
+      window.statusController = new AbortController();
+      const response = await fetch('/status', { signal: window.statusController.signal });
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
