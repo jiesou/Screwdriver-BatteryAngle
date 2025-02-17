@@ -2,6 +2,7 @@
 #include "ArduinoJson.h"
 #include "LittleFS.h"
 #include "StoredConfig.h"
+#include "CurrentProcessor.h"
 
 CaptivePortal::CaptivePortal() : server(80), status_stream_events("/status") {}
 
@@ -15,13 +16,12 @@ void CaptivePortal::begin() {
   setupRequestHandlers();
 }
 
-void CaptivePortal::updateStatusChange(bool sta_connected, const String &ip,
+void CaptivePortal::updateStatusChange(String sta_conn_status, const String &ip,
                                        float frequency, bool btn_pressed) {
   // 检查有客户端连接
   if (status_stream_events.count() > 0) {
     JsonDocument doc;
-    doc["sta_connected"] = sta_connected;
-    doc["sta_error"] = !sta_connected;
+    doc["sta_conn_status"] = sta_conn_status;
     doc["ip"] = ip;
     doc["frequency"] = frequency;
     doc["btn_pressed"] = btn_pressed;
@@ -32,6 +32,16 @@ void CaptivePortal::updateStatusChange(bool sta_connected, const String &ip,
   }
 }
 
+//  每隔 100 毫秒推送一次 status
+void CaptivePortal::update() {
+  unsigned long currentMillis = millis();
+  if (currentMillis - lastPushUpdateTime > 100) {
+    updateStatusChange(stored_config.staConnStatus, WiFi.localIP().toString(),
+                       current_processor.frequency,
+                       current_processor.btn_pressed);
+    lastPushUpdateTime = currentMillis;
+  }
+}
 
 void CaptivePortal::setupWebServer() {
   server.serveStatic("/", LittleFS, "/");
@@ -54,11 +64,11 @@ void CaptivePortal::setupRequestHandlers() {
         deserializeJson(doc, data, len);
         String ssid = doc["wifi_sta_ssid"];
         String password = doc["wifi_sta_password"];
-        Serial.printf("SSID: %s, Password: %s\n", ssid.c_str(),
+        Serial.printf("Got new SSID: %s, Password: %s\n", ssid.c_str(),
                       password.c_str());
         stored_config.wifi_sta_ssid = ssid;
         stored_config.wifi_sta_password = password;
-        stored_config.config_renewed = true;
+        stored_config.staConfigRenewed = true;
 
         request->send(200, "application/json",
                       "{\"message\":\"公共 WiFi 配置已更新\"}");

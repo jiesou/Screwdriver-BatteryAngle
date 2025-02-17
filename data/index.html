@@ -34,7 +34,7 @@
 
 <body class="mdui-theme-auto">
   <mdui-top-app-bar>
-    <mdui-top-app-bar-title>BatteryAngle 配置 111</mdui-top-app-bar-title>
+    <mdui-top-app-bar-title>BatteryAngle 配置</mdui-top-app-bar-title>
   </mdui-top-app-bar>
 
   <div class="main-content">
@@ -128,14 +128,14 @@
             if (line === "\r") continue;
             const data = JSON.parse(line.replace(/^data: /, ''));
             const status = document.getElementById("status");
-            let message = "公用 WiFi 连接中...";
+            let message = "--";
             let color = "var(--mdui-color-warning)";
 
-            if (data.sta_connected) {
+            if (data.sta_conn_status === "已连接") {
               message = `公用 WiFi 已连接！IP: ${data.ip}`;
               color = "var(--mdui-color-success)";
-            } else if (data.sta_error) {
-              message = "公用 WiFi 无连接";
+            } else if (data.sta_conn_status) {
+              message = `公用 WiFi ${data.sta_conn_status}`;
               color = "var(--mdui-color-error)";
             }
 

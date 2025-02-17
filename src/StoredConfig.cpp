@@ -46,9 +46,11 @@ JsonDocument StoredConfig::load() {
 }
 
 StoredConfig::StoredConfig() {
-  if (load() == true) {
-    // 如果读出了ssid和password的配置，那就尝试连接
-    config_renewed = true;
+  // 这将不起作用，此时 Serial 还没有 setup
+  // Serial.println("[StoredConfig] init");
+  if (load() == json) {
+    // 如果读出了ssid和password的配置，那就可以尝试连接
+    staConfigRenewed = true;
   }
 }
 

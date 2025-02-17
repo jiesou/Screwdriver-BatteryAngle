@@ -20,7 +20,6 @@ AsyncWebServer server(80);
 WiFiManager wifiManager;
 CaptivePortal captivePortal;
 OTAHandler otaHandler;
-CurrentProcessor currentProcessor;
 
 void setup() {
   Serial.begin(74880);
@@ -35,40 +34,41 @@ void setup() {
   Serial.println("===OTA Service started===");
   captivePortal.begin();
   Serial.println("===Captive Portal started===");
-  currentProcessor.begin();
+  current_processor.begin();
   Serial.println("===Current Processor started===");
 
   wifiManager.onConnect([]() {
     Serial.println("Connected to WiFi");
     Serial.println("IP: " + wifiManager.getLocalIP());
-    stored_config.connStatus = true;
+    stored_config.staConnStatus =  "已连接";
     stored_config.save();
+    Serial.println("Connected to WiFi and saved");
   });
   wifiManager.onDisconnect([]() {
-    stored_config.connStatus = false;
-    stored_config.config_renewed = false;
+    stored_config.staConnStatus = "连接断开，将不会保存";
+    stored_config.staConfigRenewed = false;
     Serial.println("Disconnected from WiFi");
+  });
+  wifiManager.onConnectionError([](const std::string &message) {
+    stored_config.staConnStatus = String("连接错误 ") + message.c_str();
+    stored_config.staConfigRenewed = false;
+    Serial.println("WiFi connect error: " + String(message.c_str()));
   });
   tone(13, 1000);
 }
 
 void loop() {
-  if (stored_config.config_renewed) {
-    stored_config.config_renewed = false;
+  if (stored_config.staConfigRenewed) {
+    Serial.println("===[Loop] WiFi config checked===");
+    stored_config.staConfigRenewed = false;
+    stored_config.staConnStatus = "连接中";
     wifiManager.connectToWiFi(stored_config.wifi_sta_ssid,
                               stored_config.wifi_sta_password);
   }
-  Serial.println("===[Loop] WiFi config checked===");
   otaHandler.update();
-  Serial.println("===[Loop] OTA Service updated===");
-  currentProcessor.update();
-  Serial.println("===[Loop] Current Processor updated===");
-  static unsigned long last_pushupdate_time = 0;
-  if (millis() - last_pushupdate_time > 100) {
-    captivePortal.updateStatusChange(
-        stored_config.connStatus, WiFi.localIP().toString(),
-        currentProcessor.frequency, currentProcessor.btn_pressed);
-    last_pushupdate_time = millis();
-    Serial.println("===[Loop] Captive Portal status api updated===");
-  }
+  // Serial.println("===[Loop] OTA Service updated===");
+  current_processor.update();
+  // Serial.println("===[Loop] Current Processor updated===");
+  captivePortal.update();
+    // Serial.println("===[Loop] Captive Portal status api updated===");
 }

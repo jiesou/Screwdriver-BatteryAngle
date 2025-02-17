@@ -47,3 +47,5 @@ void CurrentProcessor::update() {
   // 插座按钮状态
   btn_pressed = digitalRead(BUTTON_PIN) == LOW;
 }
+
+CurrentProcessor current_processor;

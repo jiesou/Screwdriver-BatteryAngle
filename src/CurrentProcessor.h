@@ -28,3 +28,5 @@ public:
 };
 
 #endif
+
+extern CurrentProcessor current_processor;

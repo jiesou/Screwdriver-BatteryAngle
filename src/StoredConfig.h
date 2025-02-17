@@ -15,8 +15,9 @@ public:
 
   String wifi_sta_ssid = "";
   String wifi_sta_password =  "";
-  bool config_renewed = false;
-  bool connStatus = false;
+
+  bool staConfigRenewed = false;
+  String staConnStatus = "--";
 };
 
 extern StoredConfig stored_config;
