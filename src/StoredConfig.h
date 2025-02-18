@@ -7,8 +7,7 @@ class StoredConfig {
 private:
   /* data */
 public:
-  StoredConfig();
-
+  void init();
   bool save();
   JsonDocument load();
   JsonDocument json;

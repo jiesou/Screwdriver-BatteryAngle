@@ -45,11 +45,11 @@ JsonDocument StoredConfig::load() {
   return json;
 }
 
-StoredConfig::StoredConfig() {
-  // 这将不起作用，此时 Serial 还没有 setup
-  // Serial.println("[StoredConfig] init");
-  if (load() == json) {
-    // 如果读出了ssid和password的配置，那就可以尝试连接
+void StoredConfig::init() {
+  Serial.println("[StoredConfig] init");
+  load();
+  if (wifi_sta_ssid.length() > 0 && wifi_sta_password.length() > 0) {
+    // 如果读出了 ssid 和 password 的配置，那就可以尝试连接
     staConfigRenewed = true;
   }
 }

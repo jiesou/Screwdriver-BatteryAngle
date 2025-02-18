@@ -9,7 +9,7 @@
 #include "ArduinoOTA.h"
 #include "CurrentProcessor.h"
 #include "ESPAsyncWebServer.h"
-#include "LittleFS.h" //我们把网页藏在LittleFS内
+#include "LittleFS.h" //我们把网页藏在 LittleFS 内（data 目录）
 #include "StoredConfig.h"
 #include "ota/CaptivePortal.h"
 #include "ota/OTAHandler.h"
@@ -28,6 +28,8 @@ void setup() {
 
   LittleFS.begin();
   Serial.println("===File system mounted===");
+  stored_config.init();
+  Serial.println("===Stored Config initialized===");
   wifiManager.startAP();
   Serial.println("===AP started===");
   otaHandler.begin();
@@ -60,6 +62,8 @@ void setup() {
 void loop() {
   if (stored_config.staConfigRenewed) {
     Serial.println("===[Loop] WiFi config checked===");
+    Serial.println("Stored: SSID: " + stored_config.wifi_sta_ssid +
+                   ", Password: " + stored_config.wifi_sta_password);
     stored_config.staConfigRenewed = false;
     stored_config.staConnStatus = "连接中";
     wifiManager.connectToWiFi(stored_config.wifi_sta_ssid,
