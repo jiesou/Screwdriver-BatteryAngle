@@ -70,9 +70,9 @@ void loop() {
                               stored_config.wifi_sta_password);
   }
   otaHandler.update();
-  // Serial.println("===[Loop] OTA Service updated===");
+  Serial.println("===[Loop] OTA Service updated===");
   current_processor.update();
-  // Serial.println("===[Loop] Current Processor updated===");
+  Serial.println("===[Loop] Current Processor updated===");
   captivePortal.update();
-    // Serial.println("===[Loop] Captive Portal status api updated===");
+  Serial.println("===[Loop] Captive Portal status api updated===");
 }

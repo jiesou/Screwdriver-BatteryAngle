@@ -20,9 +20,9 @@ void CurrentProcessor::begin() {
 }
 
 void CurrentProcessor::update() {
-  // 20ms 更新一次
+  // 300ms 采样一次
   unsigned long current_millis = millis();
-  if (current_millis - last_update_time < 100)
+  if (current_millis - last_update_time < 300)
     return;
   last_update_time = current_millis;
 

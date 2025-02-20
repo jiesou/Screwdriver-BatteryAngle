@@ -32,10 +32,10 @@ void CaptivePortal::updateStatusChange(String sta_conn_status, const String &ip,
   }
 }
 
-//  每隔 100 毫秒推送一次 status
+//  每隔 300 毫秒推送一次 status
 void CaptivePortal::update() {
   unsigned long currentMillis = millis();
-  if (currentMillis - lastPushUpdateTime > 100) {
+  if (currentMillis - lastPushUpdateTime > 300) {
     updateStatusChange(stored_config.staConnStatus, WiFi.localIP().toString(),
                        current_processor.frequency,
                        current_processor.btn_pressed);
