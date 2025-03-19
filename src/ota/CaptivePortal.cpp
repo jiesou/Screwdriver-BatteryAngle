@@ -40,7 +40,7 @@ void CaptivePortal::update() {
   if (currentMillis - lastPushUpdateTime > 300) {
     updateStatusChange(stored_config.staConnStatus, WiFi.localIP().toString(),
                        current_processor.frequency,
-                       current_processor.btn_pressed);
+                       digitalRead(BUTTON_PIN) == LOW);
     lastPushUpdateTime = currentMillis;
   }
 }

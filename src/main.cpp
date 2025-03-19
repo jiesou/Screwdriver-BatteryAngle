@@ -56,16 +56,13 @@ void setup() {
     stored_config.staConfigRenewed = false;
     Serial.println("WiFi connect error: " + String(message.c_str()));
   });
-  tone(13, 1000);
-
-  pinMode(2, OUTPUT);
-  digitalWrite(2, LOW);
+  pinMode(2, OUTPUT); // LED
   pinMode(4, OUTPUT);
 }
 
 void loop() {
   if (stored_config.staConfigRenewed) {
-    Serial.println("===[Loop] WiFi config checked===");
+    Serial.println("===[Loop] WiFi config renewed===");
     Serial.println("Stored: SSID: " + stored_config.wifi_sta_ssid +
                    ", Password: " + stored_config.wifi_sta_password);
     stored_config.staConfigRenewed = false;
@@ -74,16 +71,15 @@ void loop() {
                               stored_config.wifi_sta_password);
   }
   otaHandler.update();
-  Serial.println("===[Loop] OTA Service updated===");
   current_processor.update();
-  Serial.println("===[Loop] Current Processor updated===");
   captivePortal.update();
-  Serial.println("===[Loop] Captive Portal status api updated===");
 
   if (stored_config.relay_state) {
     digitalWrite(4, HIGH);
+    digitalWrite(2, LOW);
   } else {
     digitalWrite(4, LOW);
+    digitalWrite(2, HIGH);
   }
   // static unsigned long lastToggleTime = 0;
   // static bool io10State = false;

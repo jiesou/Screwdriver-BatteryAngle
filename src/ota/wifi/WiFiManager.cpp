@@ -12,6 +12,8 @@ WiFiManager::WiFiManager() : _isConnected(false) {
 void WiFiManager::startAP() {
   // 设置独一无二的 AP 名以区分
   String apName = "BatteryAngle_" + String((uint32_t)ESP.getChipId(), HEX);
+  // 同时设置主机名，使其和AP名称一致
+  WiFi.hostname(apName);
   WiFi.softAP(apName.c_str());
 }
 
