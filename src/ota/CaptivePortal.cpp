@@ -25,6 +25,7 @@ void CaptivePortal::updateStatusChange(String sta_conn_status, const String &ip,
     doc["ip"] = ip;
     doc["frequency"] = frequency;
     doc["btn_pressed"] = btn_pressed;
+    doc["relay_state"] = stored_config.relay_state;
 
     String output;
     serializeJson(doc, output);
@@ -35,6 +36,7 @@ void CaptivePortal::updateStatusChange(String sta_conn_status, const String &ip,
 //  每隔 300 毫秒推送一次 status
 void CaptivePortal::update() {
   unsigned long currentMillis = millis();
+  // 小于 300 毫秒容易卡住 HTTP 流
   if (currentMillis - lastPushUpdateTime > 300) {
     updateStatusChange(stored_config.staConnStatus, WiFi.localIP().toString(),
                        current_processor.frequency,
@@ -122,6 +124,18 @@ void CaptivePortal::setupRequestHandlers() {
     serializeJson(config, output);
     request->send(200, "application/json", output.c_str());
   });
+
+  server.on("/set_relay_switch", HTTP_POST, [](AsyncWebServerRequest *request) {},
+      NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len,
+         size_t index, size_t total) {
+    JsonDocument doc;
+    deserializeJson(doc, data, len);
+    bool relay_switch = doc["relay_switch"];
+    Serial.println("Got new relay switch state: " +
+                   String(relay_switch));
+    stored_config.relay_state = relay_switch == true; // 避免空值
+    request->send(200, "application/json", "{\"message\":\"已更新\"}");
+      });
 
   server.begin();
 }

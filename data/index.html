@@ -42,7 +42,8 @@
       <mdui-card class="config-card" style="flex: 1 1 300px;">
         <mdui-card-content style="padding: 8px; gap: 10px; display: grid;">
           <mdui-dropdown trigger="hover">
-            <mdui-text-field slot="trigger" id="wifi_sta_ssid" label="WiFi 网络名称（SSID）" variant="outlined"></mdui-text-field>
+            <mdui-text-field slot="trigger" id="wifi_sta_ssid" label="WiFi 网络名称（SSID）"
+              variant="outlined"></mdui-text-field>
             <mdui-menu id="wifi-ssid-menu">
               <mdui-menu-item>WiFi 扫描中……</mdui-menu-item>
             </mdui-menu>
@@ -50,6 +51,7 @@
           <mdui-text-field id="wifi_sta_password" label="WiFi 网络密码  " type="password" variant="outlined"
             toggle-password></mdui-text-field>
           <mdui-button onclick="submitForm()">提交</mdui-button>
+          <div style="margin-top: 10px; display: flex; align-items: center;"> 电源开关 <mdui-switch id="relay_switch" style="margin-left: 10px;" value="true" /></div>
         </mdui-card-content>
       </mdui-card>
 
@@ -101,7 +103,7 @@
         .catch(error => console.error("Error:", error));
     }
 
-    async function readStatus(callback=()=>{}) {
+    async function readStatus(callback = () => { }) {
       // 新 status 连接建立后，把老的连接断开，防止多重请求对后端造成压力
       if (window.statusController) {
         window.statusController.abort();
@@ -138,8 +140,9 @@
               color = "var(--mdui-color-error)";
             }
 
-            message += ` 频率: ${data.frequency}`;
-            message += ` ${data.btn_pressed ? "按钮按下" : "按钮未按下"}`;
+            message += `<br>频率: ${data.frequency}`;
+            message += `<br>${data.btn_pressed ? "按钮按下" : "按钮未按下"}`;
+            message += `<br>${data.relay_state ? "电源开关已打开" : "电源开关已关闭"}`;
 
             status.innerHTML = `<span style="color: ${color}">${message}</span>`;
           } catch (error) {
@@ -174,6 +177,20 @@
         menu.appendChild(item);
       });
       mdui.mutation('#wifi-ssid-menu').open();
+    });
+
+
+
+    let relaySwitchState = false;
+    document.getElementById("relay_switch").addEventListener("change", (event) => {
+      relaySwitchState = event.target.checked;
+      fetch('/set_relay_switch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ relay_switch: relaySwitchState })
+      }).then(response => response.json())
+        .then(data => mdui.snackbar({ message: data.message }))
+        .catch(error => console.error("Error:", error));
     });
   </script>
 

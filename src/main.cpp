@@ -42,7 +42,7 @@ void setup() {
   wifiManager.onConnect([]() {
     Serial.println("Connected to WiFi");
     Serial.println("IP: " + wifiManager.getLocalIP());
-    stored_config.staConnStatus =  "已连接";
+    stored_config.staConnStatus = "已连接";
     stored_config.save();
     Serial.println("Connected to WiFi and saved");
   });
@@ -57,6 +57,10 @@ void setup() {
     Serial.println("WiFi connect error: " + String(message.c_str()));
   });
   tone(13, 1000);
+
+  pinMode(2, OUTPUT);
+  digitalWrite(2, LOW);
+  pinMode(4, OUTPUT);
 }
 
 void loop() {
@@ -75,4 +79,17 @@ void loop() {
   Serial.println("===[Loop] Current Processor updated===");
   captivePortal.update();
   Serial.println("===[Loop] Captive Portal status api updated===");
+
+  if (stored_config.relay_state) {
+    digitalWrite(4, HIGH);
+  } else {
+    digitalWrite(4, LOW);
+  }
+  // static unsigned long lastToggleTime = 0;
+  // static bool io10State = false;
+  // unsigned long currentTime = millis();
+  // if (currentTime - lastToggleTime >= 1000) {
+  //   io10State = !io10State;
+  //   digitalWrite(10, io10State ? HIGH : LOW);
+  //   lastToggleTime = currentTime;
 }

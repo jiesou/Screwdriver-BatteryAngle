@@ -12,8 +12,10 @@ public:
   JsonDocument load();
   JsonDocument json;
 
+  // 持久状态
   String wifi_sta_ssid = "";
   String wifi_sta_password =  "";
+  bool relay_state = false;
 
   bool staConfigRenewed = false;
   String staConnStatus = "--";
