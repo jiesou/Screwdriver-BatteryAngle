@@ -7,8 +7,8 @@
 #define FREQUENCY_THRESHOLD 15.0
 
 // 简单的频率检测相关常量
-#define PULSE_TIMEOUT 2000        // 2秒无脉冲视为停止
-#define OVERALL_SAMPLING_INTERVAL 300 // 默认 脉冲间隔 法采样时间
+#define PULSE_TIMEOUT 1000        // 1000 ms 无脉冲视为停止
+#define DEFAULT_T_W_SAMPLING_INTERVAL 300 // 默认 脉冲间隔 法采样时间
 
 class CurrentProcessor {
 private:
@@ -24,16 +24,15 @@ private:
     static void IRAM_ATTR CF1Interrupt();
 
 public:
-    unsigned long last_overall_update_time = 0;
-    volatile float frequency = 0;
-    //  内部计数
-    volatile bool appliance_working = false;
-    volatile unsigned int screw_count = 4;
+  unsigned long last_interval_update_time = 0;
+  volatile float frequency = 0;
+  //  内部计数
+  volatile bool appliance_working = false;
+  volatile unsigned int screw_count = 4;
 
-    CurrentProcessor();
-    void begin();
-    void update();
-    void innerSampling();
+  CurrentProcessor();
+  void begin();
+  void update();
 };
 
 #endif
