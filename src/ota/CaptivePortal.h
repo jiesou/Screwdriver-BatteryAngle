@@ -8,7 +8,7 @@ public:
   void begin();
 
   // 推送 status 更新
-  void updateStatusChange(String sta_connected, const String &ip, float frequency,
+  void updateStatusChange(String sta_connected, String ip, float frequency,
                           bool btn_pressed);
 
   // 定时得到 status 的接口

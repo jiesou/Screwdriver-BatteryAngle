@@ -4,6 +4,8 @@
 #include "StoredConfig.h"
 #include "CurrentProcessor.h"
 
+#define BUTTON_PIN 0
+
 CaptivePortal::CaptivePortal() : server(80), status_stream_events("/status") {}
 
 void CaptivePortal::CaptiveRequestHandler::handleRequest(
@@ -14,9 +16,11 @@ void CaptivePortal::CaptiveRequestHandler::handleRequest(
 void CaptivePortal::begin() {
   setupWebServer();
   setupRequestHandlers();
+
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
 }
 
-void CaptivePortal::updateStatusChange(String sta_conn_status, const String &ip,
+void CaptivePortal::updateStatusChange(String sta_conn_status, String ip,
                                        float frequency, bool btn_pressed) {
   // 检查有客户端连接
   if (status_stream_events.count() > 0) {
