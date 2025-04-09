@@ -5,31 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BatteryAngle 配置</title>
-  <link rel="stylesheet" href="https://unpkg.com/mdui@2.0.3/mdui.css">
-  <script src="https://unpkg.com/mdui@2.0.3/mdui.global.js"></script>
-  <style>
-    .main-content {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-
-    .config-card {
-      margin: 16px 0;
-    }
-
-    .status-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    #status {
-      flex: 1;
-      margin-top: 0;
-      padding: 8px;
-    }
-  </style>
+  <link rel="stylesheet" href="./mdui.css">
+  <script src="./mdui.global.js"></script>
 </head>
 
 <body class="mdui-theme-auto">
@@ -37,9 +14,9 @@
     <mdui-top-app-bar-title>BatteryAngle 配置</mdui-top-app-bar-title>
   </mdui-top-app-bar>
 
-  <div class="main-content">
-    <div style="display: flex; gap: 16px;">
-      <mdui-card class="config-card" style="flex: 1 1 300px;">
+  <div style="max-width: 800px; margin: 0 auto; padding: 16px;">
+    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+      <mdui-card style="margin: 16px 0; flex: 1 1 300px; min-width: 280px;">
         <mdui-card-content style="padding: 8px; gap: 10px; display: grid;">
           <mdui-dropdown trigger="hover">
             <mdui-text-field slot="trigger" id="wifi_sta_ssid" label="WiFi 网络名称（SSID）"
@@ -55,7 +32,7 @@
         </mdui-card-content>
       </mdui-card>
 
-      <mdui-card class="status-card" style="flex: 1 1 300px;">
+      <mdui-card style="flex: 1 1 300px; min-width: 280px; margin: 16px 0;">
         <mdui-card-content style="padding-left: 10px; display: block;">
           <div style="display: flex; align-items: center;">
             <h3>状态</h3>
@@ -68,8 +45,8 @@
               </svg>
             </mdui-button-icon>
           </div>
-          <div class="status-container">
-            <span id="status">公用 WiFi 状态待更新</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="status" style="flex: 1; margin-top: 0; padding: 8px;">公用 WiFi 状态待更新</span>
           </div>
         </mdui-card-content>
       </mdui-card>

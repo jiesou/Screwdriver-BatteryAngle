@@ -81,6 +81,9 @@ void loop() {
     digitalWrite(4, LOW);
     digitalWrite(2, HIGH);
   }
+
+
+  
   // static unsigned long lastToggleTime = 0;
   // static bool io10State = false;
   // unsigned long currentTime = millis();
