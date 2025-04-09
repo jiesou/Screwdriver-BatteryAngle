@@ -82,8 +82,25 @@ void loop() {
     digitalWrite(2, HIGH);
   }
 
+  static unsigned long lastCycleStart = 0;
+  unsigned long currentMillis = millis();
+  unsigned long secondsPassed = currentMillis / 1000;
 
-  
+  if (currentMillis - lastCycleStart >= 60000) {
+    lastCycleStart = currentMillis;
+  }
+
+  unsigned long cyclePosition = (currentMillis - lastCycleStart) / 1000;
+
+  if (cyclePosition < 3) {
+    digitalWrite(4, HIGH);
+    digitalWrite(2, LOW);
+  } else if (!stored_config
+                  .relay_state) {
+    digitalWrite(4, LOW);
+    digitalWrite(2, HIGH);
+  }
+
   // static unsigned long lastToggleTime = 0;
   // static bool io10State = false;
   // unsigned long currentTime = millis();
