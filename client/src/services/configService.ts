@@ -2,7 +2,7 @@ import type { DeviceConfig, ApiResponse } from '../types';
 
 export function useConfigService() {
   const fetchConfig = async (): Promise<DeviceConfig> => {
-    const response = await fetch('/get_config');
+    const response = await fetch('/api/get_config');
     if (!response.ok) {
       throw new Error('Failed to fetch config');
     }
@@ -10,7 +10,7 @@ export function useConfigService() {
   };
 
   const setWifiConfig = async (config: DeviceConfig): Promise<ApiResponse> => {
-    const response = await fetch('/set_wifi_ssid_and_passwd', {
+    const response = await fetch('/api/set_wifi_ssid_and_passwd', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(config)
@@ -24,7 +24,7 @@ export function useConfigService() {
   };
 
   const fetchWifiNetworks = async (): Promise<string[]> => {
-    const response = await fetch('/fetch_nearby_wifi_ssids');
+    const response = await fetch('/api/fetch_nearby_wifi_ssids');
     if (!response.ok) {
       throw new Error('Failed to fetch WiFi networks');
     }
@@ -32,7 +32,7 @@ export function useConfigService() {
   };
 
   const setRelaySwitch = async (state: boolean): Promise<ApiResponse> => {
-    const response = await fetch('/set_relay_switch', {
+    const response = await fetch('/api/set_relay_switch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ relay_switch: state })

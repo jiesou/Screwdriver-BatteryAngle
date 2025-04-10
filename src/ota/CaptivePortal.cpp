@@ -4,7 +4,8 @@
 #include "LittleFS.h"
 #include "StoredConfig.h"
 
-CaptivePortal::CaptivePortal() : server(80), status_stream_events("/status") {}
+CaptivePortal::CaptivePortal()
+    : server(80), status_stream_events("/api/status") {}
 
 void CaptivePortal::CaptiveRequestHandler::handleRequest(
     AsyncWebServerRequest *request) {
@@ -20,13 +21,11 @@ void CaptivePortal::updateStatusChange() {
   unsigned long currentMillis = millis();
   // 每隔 300 毫秒推送一次 status
   // 小于 300 毫秒容易卡住 HTTP 流
-  if (currentMillis - lastPushUpdateTime < 300) {
-    return;
-  }
+  if (currentMillis - lastPushUpdateTime < 300) return;
+  lastPushUpdateTime = currentMillis;
   // 检查有客户端连接
-  if (status_stream_events.count() < 1) {
-    return;
-  }
+  if (status_stream_events.count() < 1) return;
+
 
   JsonDocument doc;
   doc["sta_conn_status"] = stored_config.staConnStatus;
@@ -38,7 +37,6 @@ void CaptivePortal::updateStatusChange() {
   String output;
   serializeJson(doc, output);
   status_stream_events.send(output.c_str());
-  lastPushUpdateTime = currentMillis;
 }
 
 void CaptivePortal::update() { updateStatusChange(); }
@@ -55,15 +53,15 @@ void CaptivePortal::setupWebServer() {
 }
 
 void CaptivePortal::setupRequestHandlers() {
-  server.on("/get_config", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/api/get_config", HTTP_GET, [](AsyncWebServerRequest *request) {
     JsonDocument config = stored_config.load();
     String output;
     serializeJson(config, output);
     request->send(200, "application/json", output.c_str());
   });
-  
+
   server.on(
-      "/set_config", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL,
+      "/api/set_config", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL,
       [](AsyncWebServerRequest *request, uint8_t *data, size_t len,
          size_t index, size_t total) {
         JsonDocument doc;
@@ -80,7 +78,7 @@ void CaptivePortal::setupRequestHandlers() {
                       "{\"message\":\"公共 WiFi 配置已更新\"}");
       });
 
-  server.on("/fetch_nearby_wifi_ssids", HTTP_GET,
+  server.on("/api/fetch_nearby_wifi_ssids", HTTP_GET,
             [](AsyncWebServerRequest *request) {
               Serial.println("Fetching nearby WiFi SSIDs");
               // 保存请求对象以在回调中使用
@@ -113,7 +111,7 @@ void CaptivePortal::setupRequestHandlers() {
               });
             });
 
-  server.on("/status", HTTP_GET, [this](AsyncWebServerRequest *request) {
+  server.on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request) {
     status_stream_events.onConnect([](AsyncEventSourceClient *client) {
       if (client->lastId()) {
         Serial.printf("Client reconnected! Last message ID: %u\n",
@@ -124,7 +122,7 @@ void CaptivePortal::setupRequestHandlers() {
   });
 
   server.on(
-      "/set_relay_switch", HTTP_POST, [](AsyncWebServerRequest *request) {},
+      "/api/set_relay_switch", HTTP_POST, [](AsyncWebServerRequest *request) {},
       NULL,
       [](AsyncWebServerRequest *request, uint8_t *data, size_t len,
          size_t index, size_t total) {

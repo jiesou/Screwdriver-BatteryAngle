@@ -15,7 +15,7 @@ export function useStatusService() {
     statusController = new AbortController();
     
     try {
-      const response = await fetch('/status', { 
+      const response = await fetch('/api/status', { 
         signal: statusController.signal 
       });
       
