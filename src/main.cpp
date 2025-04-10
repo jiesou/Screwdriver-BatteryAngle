@@ -7,10 +7,12 @@
 #endif
 #include "ArduinoJson.h"
 #include "ArduinoOTA.h"
-#include "CurrentProcessor.h"
 #include "ESPAsyncWebServer.h"
 #include "LittleFS.h" //我们把网页藏在 LittleFS 内（data 目录）
+
 #include "StoredConfig.h"
+#include "CurrentProcessor.h"
+#include "RelayControler.h"
 #include "ota/CaptivePortal.h"
 #include "ota/OTAHandler.h"
 #include "ota/wifi/WiFiManager.h"
@@ -38,6 +40,8 @@ void setup() {
   Serial.println("===Captive Portal started===");
   current_processor.begin();
   Serial.println("===Current Processor started===");
+  relay_controler.begin();
+  Serial.println("===Relay Controler started===");
 
   wifiManager.onConnect([]() {
     Serial.println("Connected to WiFi");
@@ -56,8 +60,6 @@ void setup() {
     stored_config.staConfigRenewed = false;
     Serial.println("WiFi connect error: " + String(message.c_str()));
   });
-  pinMode(2, OUTPUT); // LED
-  pinMode(4, OUTPUT);
 }
 
 void loop() {
@@ -73,39 +75,5 @@ void loop() {
   otaHandler.update();
   current_processor.update();
   captivePortal.update();
-
-  if (stored_config.relay_state) {
-    digitalWrite(4, HIGH);
-    digitalWrite(2, LOW);
-  } else {
-    digitalWrite(4, LOW);
-    digitalWrite(2, HIGH);
-  }
-
-  static unsigned long lastCycleStart = 0;
-  unsigned long currentMillis = millis();
-  unsigned long secondsPassed = currentMillis / 1000;
-
-  if (currentMillis - lastCycleStart >= 60000) {
-    lastCycleStart = currentMillis;
-  }
-
-  unsigned long cyclePosition = (currentMillis - lastCycleStart) / 1000;
-
-  if (cyclePosition < 3) {
-    digitalWrite(4, HIGH);
-    digitalWrite(2, LOW);
-  } else if (!stored_config
-                  .relay_state) {
-    digitalWrite(4, LOW);
-    digitalWrite(2, HIGH);
-  }
-
-  // static unsigned long lastToggleTime = 0;
-  // static bool io10State = false;
-  // unsigned long currentTime = millis();
-  // if (currentTime - lastToggleTime >= 1000) {
-  //   io10State = !io10State;
-  //   digitalWrite(10, io10State ? HIGH : LOW);
-  //   lastToggleTime = currentTime;
+  relay_controler.update();
 }

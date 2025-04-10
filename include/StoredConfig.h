@@ -15,12 +15,11 @@ public:
   // WiFi相关信息
   String wifi_sta_ssid = "";
   String wifi_sta_password = "";
-
-  bool relay_state = true;
   unsigned long relay_schedule_on = 0;
   unsigned long relay_schedule_off = 0;
-  bool button_pressed = false;
-
+  
+  bool relayState = true;
+  bool buttonPressed = false;
   bool staConfigRenewed = false;
   String staConnStatus = "--";
 };

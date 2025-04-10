@@ -7,15 +7,15 @@
 
 class RelayControler {
 private:
-  unsigned long last_button_press = 0; // 仅保留 last_button_press
+  unsigned long last_button_press = 0;
 
 public:
-  void init();
+  void begin();
   void update();
   void applyHW();
 
-  void setRelayState(bool state) { stored_config.relay_state = state; }
-  bool getRelayState() { return stored_config.relay_state; }
+  void setRelayState(bool state) { stored_config.relayState = state; }
+  bool getRelayState() { return stored_config.relayState; }
 
   void setSchedule(unsigned int on, unsigned int off) {
     stored_config.relay_schedule_on = on;
@@ -24,4 +24,4 @@ public:
   int getScheduleOn() { return stored_config.relay_schedule_on; }
 };
 
-extern RelayControler relayControler;
+extern RelayControler relay_controler;

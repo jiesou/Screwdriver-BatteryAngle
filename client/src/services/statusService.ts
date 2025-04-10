@@ -3,7 +3,7 @@ import type { DeviceStatus } from '../types';
 let statusController: AbortController | null = null;
 
 export function useStatusService() {
-  const connectStatus = async (
+  const connectStatusTo = async (
     callback: (status: DeviceStatus) => void
   ): Promise<void> => {
     // 断开旧连接
@@ -48,7 +48,7 @@ export function useStatusService() {
     }
   };
 
-  const disconnectStatus = (): void => {
+  const disconnectStatusService = (): void => {
     if (statusController) {
       statusController.abort();
       statusController = null;
@@ -56,7 +56,7 @@ export function useStatusService() {
   };
 
   return {
-    connectStatus,
-    disconnectStatus
+    connectStatusTo,
+    disconnectStatusService
   };
 }

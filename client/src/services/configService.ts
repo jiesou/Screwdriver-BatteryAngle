@@ -1,15 +1,15 @@
-import type { WifiConfig, ApiResponse } from '../types';
+import type { DeviceConfig, ApiResponse } from '../types';
 
 export function useConfigService() {
-  const fetchConfig = async (): Promise<WifiConfig> => {
+  const fetchConfig = async (): Promise<DeviceConfig> => {
     const response = await fetch('/get_config');
     if (!response.ok) {
       throw new Error('Failed to fetch config');
     }
-    return await response.json() as WifiConfig;
+    return await response.json() as DeviceConfig;
   };
 
-  const setWifiConfig = async (config: WifiConfig): Promise<ApiResponse> => {
+  const setWifiConfig = async (config: DeviceConfig): Promise<ApiResponse> => {
     const response = await fetch('/set_wifi_ssid_and_passwd', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -2,31 +2,34 @@
 import { ref, onMounted } from 'vue';
 import { useConfigService } from './services/configService';
 import { useStatusService } from './services/statusService';
-import type { WifiConfig, DeviceStatus } from './types';
+import type { DeviceConfig, DeviceStatus } from './types';
 
-import 'mdui/mdui.css';
 import { snackbar } from 'mdui/functions/snackbar.js';
+import 'mdui/mdui.css';
+import 'mdui';
 
 // 响应式状态
-const wifiConfig = ref<WifiConfig>({
+const deviceConfig = ref<DeviceConfig>({
   wifi_sta_ssid: '',
-  wifi_sta_password: ''
+  wifi_sta_password: '',
+  relay_schedule_on: 0,
+  relay_schedule_off: 0
 });
 const deviceStatus = ref<DeviceStatus | null>(null);
 const wifiNetworks = ref<string[]>([]);
-const isLoading = ref(false);
-const menuOpen = ref(false);
-const relaySwitchState = ref(false);
+const isConnecting = ref<boolean>(false);
+const menuOpen = ref<boolean>(false);
+const relaySwitchState = ref<boolean>(false);
 
 // 服务
 const { fetchConfig, setWifiConfig, fetchWifiNetworks, setRelaySwitch } = useConfigService();
-const { connectStatus, disconnectStatus } = useStatusService();
+const { connectStatusTo, disconnectStatusService } = useStatusService();
 
 // 加载配置
 const loadConfig = async () => {
   try {
     const config = await fetchConfig();
-    wifiConfig.value = config;
+    deviceConfig.value = config;
   } catch (error) {
     console.error("Error loading config:", error);
   }
@@ -45,7 +48,7 @@ const loadWifiNetworks = async () => {
 // 提交表单
 const submitForm = async () => {
   try {
-    const result = await setWifiConfig(wifiConfig.value);
+    const result = await setWifiConfig(deviceConfig.value);
     snackbar({ message: result.message });
   } catch (error) {
     console.error("Error:", error);
@@ -64,21 +67,19 @@ const updateRelaySwitch = async () => {
 
 // 重新连接状态
 const reconnectStatus = async () => {
-  isLoading.value = true;
-  disconnectStatus();
+  isConnecting.value = true;
+  disconnectStatusService();
 
-  const updateStatusCallback = (status: DeviceStatus) => {
+  await connectStatusTo((status: DeviceStatus) => {
+    isConnecting.value = false;
     deviceStatus.value = status;
     relaySwitchState.value = status.relay_state;
-  };
-
-  await connectStatus(updateStatusCallback);
-  isLoading.value = false;
+  });
 };
 
 // 选择WiFi网络
 const selectWifiNetwork = (ssid: string) => {
-  wifiConfig.value.wifi_sta_ssid = ssid;
+  deviceConfig.value.wifi_sta_ssid = ssid;
   menuOpen.value = false;
 };
 
@@ -111,8 +112,8 @@ function getStatusColor() {
       <mdui-card style="margin: 16px 0; flex: 1 1 300px; min-width: 280px;">
         <mdui-card-content style="padding: 8px; gap: 10px; display: grid;">
           <mdui-dropdown trigger="hover" :open="menuOpen" @open="loadWifiNetworks">
-            <mdui-text-field slot="trigger" label="WiFi 网络名称（SSID）" variant="outlined"
-              v-model="wifiConfig.wifi_sta_ssid"></mdui-text-field>
+            <mdui-text-field slot="trigger" label="WiFi 网络名称（SSID）" variant="outlined" :value="deviceConfig.wifi_sta_ssid"
+              @input="deviceConfig.wifi_sta_ssid = $event.target.value"></mdui-text-field>
             <mdui-menu>
               <mdui-menu-item v-if="wifiNetworks.length === 0">
                 WiFi 扫描中……
@@ -124,13 +125,14 @@ function getStatusColor() {
           </mdui-dropdown>
 
           <mdui-text-field label="WiFi 网络密码" type="password" variant="outlined" toggle-password
-            v-model="wifiConfig.wifi_sta_password"></mdui-text-field>
+            :value="deviceConfig.wifi_sta_password"
+            @input="deviceConfig.wifi_sta_password = $event.target.value"></mdui-text-field>
 
           <mdui-button @click="submitForm">提交</mdui-button>
 
           <div style="margin-top: 10px; display: flex; align-items: center;">
             电源开关
-            <mdui-switch style="margin-left: 10px;" v-model="relaySwitchState" @change="updateRelaySwitch" />
+            <mdui-switch style="margin-left: 10px;" :value="relaySwitchState" @change="updateRelaySwitch" />
           </div>
         </mdui-card-content>
       </mdui-card>
@@ -140,7 +142,7 @@ function getStatusColor() {
         <mdui-card-content style="padding-left: 10px; display: block;">
           <div style="display: flex; align-items: center;">
             <h3>状态</h3>
-            <mdui-button-icon @click="reconnectStatus" :loading="isLoading">
+            <mdui-button-icon @click="reconnectStatus" :loading="isConnecting">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                 <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" />
                 <path
