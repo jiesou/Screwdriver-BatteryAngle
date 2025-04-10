@@ -1,4 +1,4 @@
-#include "CaptivePortal.h"
+#include "ota/CaptivePortal.h"
 #include "ArduinoJson.h"
 #include "LittleFS.h"
 #include "StoredConfig.h"
@@ -21,14 +21,14 @@ void CaptivePortal::begin() {
 }
 
 void CaptivePortal::updateStatusChange(String sta_conn_status, String ip,
-                                       float frequency, bool btn_pressed) {
+                                       float frequency) {
   // 检查有客户端连接
   if (status_stream_events.count() > 0) {
     JsonDocument doc;
     doc["sta_conn_status"] = sta_conn_status;
     doc["ip"] = ip;
     doc["frequency"] = frequency;
-    doc["btn_pressed"] = btn_pressed;
+    doc["btn_pressed"] = stored_config.button_pressed;
     doc["relay_state"] = stored_config.relay_state;
 
     String output;
@@ -43,8 +43,7 @@ void CaptivePortal::update() {
   // 小于 300 毫秒容易卡住 HTTP 流
   if (currentMillis - lastPushUpdateTime > 300) {
     updateStatusChange(stored_config.staConnStatus, WiFi.localIP().toString(),
-                       current_processor.frequency,
-                       digitalRead(BUTTON_PIN) == LOW);
+                       current_processor.frequency);
     lastPushUpdateTime = currentMillis;
   }
 }
@@ -137,7 +136,7 @@ void CaptivePortal::setupRequestHandlers() {
     bool relay_switch = doc["relay_switch"];
     Serial.println("Got new relay switch state: " +
                    String(relay_switch));
-    stored_config.relay_state = relay_switch == true; // 避免空值
+    stored_config.relay_state = (relay_switch == true); // 避免空值
     request->send(200, "application/json", "{\"message\":\"已更新\"}");
       });
 

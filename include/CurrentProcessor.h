@@ -1,6 +1,4 @@
-#ifndef CURRENT_PROCESSOR_H
-#define CURRENT_PROCESSOR_H
-
+#pragma once
 #include <Arduino.h>
 #define CF_PIN 13
 #define CF1_PIN 12
@@ -29,7 +27,5 @@ public:
   void begin();
   void update();
 };
-
-#endif
 
 extern CurrentProcessor current_processor;
