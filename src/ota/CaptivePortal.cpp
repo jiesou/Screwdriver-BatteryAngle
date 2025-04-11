@@ -15,7 +15,9 @@ void CaptivePortal::CaptiveRequestHandler::handleRequest(
 void CaptivePortal::begin() {
   setupWebServer();
   setupRequestHandlers();
+  dnsServer.start(53, "*", WiFi.softAPIP());
 }
+
 
 void CaptivePortal::updateStatusChange() {
   unsigned long currentMillis = millis();
@@ -40,14 +42,21 @@ void CaptivePortal::updateStatusChange() {
   status_stream_events.send(output.c_str());
 }
 
-void CaptivePortal::update() { updateStatusChange(); }
+void CaptivePortal::update() {
+  dnsServer.processNextRequest();
+  updateStatusChange();
+}
 
 void CaptivePortal::setupWebServer() {
   server.serveStatic("/", LittleFS, "/");
   server.addHandler(new CaptiveRequestHandler())
       .setFilter([](AsyncWebServerRequest *request) {
         String url = request->url();
-        return url == "/" || url == "/index.html";
+        // 排除API和已知静态资源请求
+        if (url.startsWith("/api/"))
+          return false;
+        // 处理所有其他请求，包括浏览器尝试访问的外部网站
+        return true;
       });
   server.addHandler(&status_stream_events);
   server.begin();

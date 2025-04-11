@@ -30,6 +30,7 @@ private:
 
   AsyncWebServer server;
   AsyncEventSource status_stream_events;
+  DNSServer dnsServer;
 
   void setupWebServer();
   void setupRequestHandlers();
