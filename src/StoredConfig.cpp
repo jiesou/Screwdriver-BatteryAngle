@@ -24,13 +24,14 @@ bool StoredConfig::save() {
 
 JsonDocument StoredConfig::load() {
   if (!LittleFS.exists(STORED_PATH)) {
-    Serial.println("[StoredConfig] No WiFi Config found, using default values");
-    // return empty json
+    Serial.println(
+        "[StoredConfig] No Config file found, return current(empty) json");
+    // return current(empty) json
     return json;
   }
   File file = LittleFS.open(STORED_PATH, "r");
   if (!file) {
-    Serial.println("[StoredConfig] Failed to open file for reading");
+    Serial.println("[StoredConfig] Failed to open config file for reading");
     return json;
   }
 

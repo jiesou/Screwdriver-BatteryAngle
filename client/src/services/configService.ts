@@ -6,6 +6,10 @@ export function useConfigService() {
     if (!response.ok) {
       throw new Error('Failed to fetch config');
     }
+
+    if (await response.text() === 'null') {
+      return {} as DeviceConfig;
+    }
     return await response.json() as DeviceConfig;
   };
 
