@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "vue-tsc -b && vite build && rm -r ../data && cp -r dist/ ../data/ && echo 'Copyed dist to pio fs data'",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useConfigService } from './services/configService';
 import { useStatusService } from './services/statusService';
 import type { DeviceConfig, DeviceStatus } from './types';
@@ -16,11 +16,11 @@ const deviceConfig = ref<DeviceConfig>({
 const deviceStatus = ref<DeviceStatus | null>(null);
 const wifiNetworks = ref<string[]>([]);
 const isConnecting = ref<boolean>(false);
-const menuOpen = ref<boolean>(false);
+const wifiDropdownOpen = ref<boolean>(false);
 const relaySwitchState = ref<boolean>(false);
 
 // 服务
-const { fetchConfig, setWifiConfig, fetchWifiNetworks, setRelaySwitch } = useConfigService();
+const { fetchConfig, setConfig, fetchWifiNetworks, setRelaySwitch } = useConfigService();
 const { connectStatusTo, disconnectStatusService } = useStatusService();
 
 // 加载配置
@@ -29,6 +29,7 @@ const loadConfig = async () => {
     const config = await fetchConfig();
     deviceConfig.value = { ...deviceConfig.value, ...config };
   } catch (error) {
+    snackbar({ message: '加载配置失败，请检查网络连接或设备状态。' });
     console.error("Error loading config:", error);
   }
 };
@@ -38,17 +39,19 @@ const loadWifiNetworks = async () => {
   try {
     wifiNetworks.value = await fetchWifiNetworks();
   } catch (error) {
+    snackbar({ message: '加载 WiFi 网络失败，请检查网络连接或设备状态。' });
     console.error("Error loading WiFi networks:", error);
     wifiNetworks.value = [];
   }
 };
 
-// 提交表单
-const submitForm = async () => {
+
+const submitConfig = async () => {
   try {
-    const result = await setWifiConfig(deviceConfig.value);
+    const result = await setConfig(deviceConfig.value);
     snackbar({ message: result.message });
   } catch (error) {
+    snackbar({ message: '配置失败，请检查网络连接或设备状态。' });
     console.error("Error:", error);
   }
 };
@@ -59,6 +62,7 @@ const updateRelaySwitch = async () => {
     const result = await setRelaySwitch(relaySwitchState.value);
     snackbar({ message: result.message });
   } catch (error) {
+    snackbar({ message: '更新继电器状态失败，请检查网络连接或设备状态。' });
     console.error("Error:", error);
   }
 };
@@ -75,16 +79,11 @@ const reconnectStatus = async () => {
   });
 };
 
-// 选择WiFi网络
-const selectWifiNetwork = (ssid: string) => {
-  deviceConfig.value.wifi_sta_ssid = ssid;
-  menuOpen.value = false;
-};
-
 onMounted(() => {
   loadConfig();
   reconnectStatus();
 });
+
 
 import '@mdui/icons/power.js';
 import '@mdui/icons/power-off.js';
@@ -103,6 +102,7 @@ import 'mdui/components/top-app-bar.js';
 import 'mdui/components/top-app-bar-title.js';
 import 'mdui/components/dropdown.js';
 import 'mdui/components/menu.js';
+import 'mdui/components/menu-item.js';
 import 'mdui/components/circular-progress.js';
 import 'mdui/components/slider.js';
 </script>
@@ -146,16 +146,18 @@ import 'mdui/components/slider.js';
             <span>{{ deviceStatus?.ip || '--' }}</span>
           </span>
           <!-- WiFi 配置 -->
-          <mdui-dropdown trigger="hover" :open="menuOpen" @open="loadWifiNetworks">
+          <mdui-dropdown trigger="hover" :open="wifiDropdownOpen" @open="loadWifiNetworks">
             <mdui-text-field slot="trigger" label="WiFi 网络名称（SSID）" variant="outlined"
-              :value="deviceConfig.wifi_sta_ssid" @input="deviceConfig.wifi_sta_ssid = $event.target.value">
+              :value="deviceConfig.wifi_sta_ssid" @input="deviceConfig.wifi_sta_ssid = $event.target.value"
+              @focus="wifiDropdownOpen=true">
             </mdui-text-field>
             <mdui-menu>
               <mdui-menu-item v-if="wifiNetworks.length === 0">
                 <mdui-circular-progress class="inline-loader" style="height: 1em;"></mdui-circular-progress>
                 WiFi 扫描中……
               </mdui-menu-item>
-              <mdui-menu-item v-for="network in wifiNetworks" :key="network" @click="selectWifiNetwork(network)">
+              <mdui-menu-item v-for="network in wifiNetworks" :key="network"
+                @click="deviceConfig.wifi_sta_ssid = network">
                 {{ network }}
               </mdui-menu-item>
             </mdui-menu>
@@ -165,7 +167,7 @@ import 'mdui/components/slider.js';
             :value="deviceConfig.wifi_sta_password" @input="deviceConfig.wifi_sta_password = $event.target.value">
           </mdui-text-field>
 
-          <mdui-button color="primary" variant="filled" @click="submitForm">
+          <mdui-button color="primary" variant="filled" @click="submitConfig">
             应用
           </mdui-button>
         </mdui-card-content>
@@ -176,15 +178,13 @@ import 'mdui/components/slider.js';
         @click="relaySwitchState = !relaySwitchState; updateRelaySwitch(); reconnectStatus();">
         <mdui-card-content class="card-content">
           <h2>电源控制</h2>
-          <div  v-if="!relaySwitchState" style="display: flex; flex-direction: column; align-items: center;">
-            <mdui-icon-power-off
-              style="height: 100%; width: 100%; max-width: 10rem;"></mdui-icon-power-off>
+          <div v-if="!relaySwitchState" style="display: flex; flex-direction: column; align-items: center;">
+            <mdui-icon-power-off style="height: 100%; width: 100%; max-width: 10rem;"></mdui-icon-power-off>
             <div style="font-size: larger;">已关闭</div>
             <div>频率：{{ deviceStatus?.frequency || '--' }}</div>
           </div>
-          <div  v-else style="display: flex; flex-direction: column; align-items: center;">
-            <mdui-icon-power
-              style="height: 100%; width: 100%; max-width: 10rem;"></mdui-icon-power>
+          <div v-else style="display: flex; flex-direction: column; align-items: center;">
+            <mdui-icon-power style="height: 100%; width: 100%; max-width: 10rem;"></mdui-icon-power>
             <div style="font-size: larger;">已开启</div>
             <div>频率：{{ deviceStatus?.frequency || '--' }}</div>
           </div>
@@ -194,24 +194,24 @@ import 'mdui/components/slider.js';
       <!-- 状态卡片 -->
       <mdui-card class="schedule-card">
         <mdui-card-content class="card-content" style="min-width: 300px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2>周期控制</h2>
             <mdui-switch :checked="deviceConfig.relay_schedule_on > 0"
               @change="deviceConfig.relay_schedule_on = $event.target.checked ? 1 : 0" />
-            </div>
+          </div>
           <div class="mdui-typo mdui-typo-title">
             开启时间：
             <strong style="color: rgb(var(--mdui-color-secondary));">
               {{
-              (Math.floor(deviceConfig.relay_schedule_on / 3600) >= 1
-              ? Math.floor(deviceConfig.relay_schedule_on / 3600) + '小时'
-              : '') +
-              (Math.floor((deviceConfig.relay_schedule_on % 3600) / 60) >= 1
-              ? Math.floor((deviceConfig.relay_schedule_on % 3600) / 60) + '分'
-              : '') +
-              (deviceConfig.relay_schedule_on % 60 >= 1
-              ? (deviceConfig.relay_schedule_on % 60) + '秒'
-              : '0秒')
+                (Math.floor(deviceConfig.relay_schedule_on / 3600) >= 1
+                  ? Math.floor(deviceConfig.relay_schedule_on / 3600) + '小时'
+                  : '') +
+                (Math.floor((deviceConfig.relay_schedule_on % 3600) / 60) >= 1
+                  ? Math.floor((deviceConfig.relay_schedule_on % 3600) / 60) + '分'
+                  : '') +
+                (deviceConfig.relay_schedule_on % 60 >= 1
+                  ? (deviceConfig.relay_schedule_on % 60) + '秒'
+                  : '0秒')
               }}
             </strong>
             （最大不可超过关闭时间）
@@ -224,15 +224,15 @@ import 'mdui/components/slider.js';
             关闭时间：
             <strong style="color: rgb(var(--mdui-color-secondary));">
               {{
-              (Math.floor(deviceConfig.relay_schedule_off / 3600) >= 1
-              ? Math.floor(deviceConfig.relay_schedule_off / 3600) + '小时'
-              : '') +
-              (Math.floor((deviceConfig.relay_schedule_off % 3600) / 60) >= 1
-              ? Math.floor((deviceConfig.relay_schedule_off % 3600) / 60) + '分'
-              : '') +
-              (deviceConfig.relay_schedule_off % 60 >= 1
-              ? (deviceConfig.relay_schedule_off % 60) + '秒'
-              : '0秒')
+                (Math.floor(deviceConfig.relay_schedule_off / 3600) >= 1
+                  ? Math.floor(deviceConfig.relay_schedule_off / 3600) + '小时'
+                  : '') +
+                (Math.floor((deviceConfig.relay_schedule_off % 3600) / 60) >= 1
+                  ? Math.floor((deviceConfig.relay_schedule_off % 3600) / 60) + '分'
+                  : '') +
+                (deviceConfig.relay_schedule_off % 60 >= 1
+                  ? (deviceConfig.relay_schedule_off % 60) + '秒'
+                  : '0秒')
               }}
             </strong>
           </div>
@@ -248,6 +248,7 @@ import 'mdui/components/slider.js';
 
 
 <style scoped>
+
 h2 {
   margin-bottom: 0;
 }

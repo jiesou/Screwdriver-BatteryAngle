@@ -12,15 +12,18 @@ void RelayControler::begin() {
 
 void RelayControler::update() {
   unsigned long currentMillis = millis();
-  // 按钮去抖和切换逻辑，只在按钮刚按下时触发
+  // 按钮去抖和切换逻辑，只在按钮刚按下/刚抬起时触发
   bool button_current = (digitalRead(BUTTON_PIN) == LOW);
   if (button_current && !stored_config.buttonPressed &&
       (currentMillis - last_button_press > 200)) {
     stored_config.relayState = !stored_config.relayState;
     applyHW();
+    stored_config.buttonPressed = true;
+  }
+  if (!button_current && stored_config.buttonPressed) {
+    stored_config.buttonPressed = false;
     last_button_press = currentMillis;
   }
-  stored_config.buttonPressed = button_current;
 
   // 如果没有设定定时，则直接根据 relay_state 更新硬件
   if (stored_config.relay_schedule_on == 0 &&

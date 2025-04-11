@@ -13,8 +13,8 @@ export function useConfigService() {
     return await response.json() as DeviceConfig;
   };
 
-  const setWifiConfig = async (config: DeviceConfig): Promise<ApiResponse> => {
-    const response = await fetch('/api/set_wifi_ssid_and_passwd', {
+  const setConfig = async (config: DeviceConfig): Promise<ApiResponse> => {
+    const response = await fetch('/api/set_config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(config)
@@ -51,7 +51,7 @@ export function useConfigService() {
 
   return {
     fetchConfig,
-    setWifiConfig,
+    setConfig,
     fetchWifiNetworks,
     setRelaySwitch
   };
