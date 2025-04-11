@@ -14,8 +14,10 @@ void CaptivePortal::CaptiveRequestHandler::handleRequest(
 
 void CaptivePortal::begin() {
   setupWebServer();
+  dnsServer.start(53, "*", WiFi.softAPIP());
   setupRequestHandlers();
 }
+
 
 void CaptivePortal::updateStatusChange() {
   unsigned long currentMillis = millis();
@@ -40,7 +42,10 @@ void CaptivePortal::updateStatusChange() {
   status_stream_events.send(output.c_str());
 }
 
-void CaptivePortal::update() { updateStatusChange(); }
+void CaptivePortal::update() {
+  dnsServer.processNextRequest();
+  updateStatusChange();
+}
 
 void CaptivePortal::setupWebServer() {
   server.serveStatic("/", LittleFS, "/");
