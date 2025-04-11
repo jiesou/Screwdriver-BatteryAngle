@@ -6,6 +6,7 @@ export interface DeviceConfig {
 }
 
 export interface DeviceStatus {
+  secs: number;
   sta_conn_status: string;
   ip?: string;
   frequency?: string;

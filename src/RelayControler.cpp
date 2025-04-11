@@ -26,7 +26,7 @@ void RelayControler::update() {
   }
 
   // 如果没有设定定时，则直接根据 relay_state 更新硬件
-  if (stored_config.relay_schedule_on == 0 &&
+  if (stored_config.relay_schedule_on == 0 ||
       stored_config.relay_schedule_off == 0) {
     applyHW();
     return;

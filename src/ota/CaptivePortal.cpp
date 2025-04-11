@@ -28,6 +28,7 @@ void CaptivePortal::updateStatusChange() {
 
 
   JsonDocument doc;
+  doc["secs"] = currentMillis / 1000;
   doc["sta_conn_status"] = stored_config.staConnStatus;
   doc["ip"] = WiFi.localIP().toString();
   doc["frequency"] = current_processor.frequency;
@@ -75,7 +76,7 @@ void CaptivePortal::setupRequestHandlers() {
         stored_config.staConfigRenewed = true;
 
         request->send(200, "application/json",
-                      "{\"message\":\"公共 WiFi 配置已更新\"}");
+                      "{\"message\":\"配置已更新\"}");
       });
 
   server.on("/api/fetch_nearby_wifi_ssids", HTTP_GET,
