@@ -30,7 +30,7 @@ void CaptivePortal::updateStatusChange() {
 
 
   JsonDocument doc;
-  doc["secs"] = currentMillis / 1000;
+  doc["millis"] = currentMillis;
   doc["sta_conn_status"] = stored_config.staConnStatus;
   doc["ip"] = WiFi.localIP().toString();
   doc["frequency"] = current_processor.frequency;
@@ -83,6 +83,8 @@ void CaptivePortal::setupRequestHandlers() {
         stored_config.relay_schedule_off =
             doc["relay_schedule_off"].as<unsigned long>();
         stored_config.staConfigRenewed = true;
+
+        stored_config.save();
 
         request->send(200, "application/json",
                       "{\"message\":\"配置已更新\"}");

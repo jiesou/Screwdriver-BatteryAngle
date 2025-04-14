@@ -7,10 +7,11 @@ export function useConfigService() {
       throw new Error('Failed to fetch config');
     }
 
-    if (await response.text() === 'null') {
+    const text = await response.text();
+    if (text === 'null') {
       return {} as DeviceConfig;
     }
-    return await response.json() as DeviceConfig;
+    return JSON.parse(text) as DeviceConfig;
   };
 
   const setConfig = async (config: DeviceConfig): Promise<ApiResponse> => {

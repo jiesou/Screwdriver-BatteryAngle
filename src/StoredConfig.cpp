@@ -13,8 +13,8 @@ bool StoredConfig::save() {
   // 更新 JsonDocument
   json["wifi_sta_ssid"] = wifi_sta_ssid;
   json["wifi_sta_password"] = wifi_sta_password;
-  json["schedule_on"] = relay_schedule_on;
-  json["schedule_off"] = relay_schedule_off;
+  json["relay_schedule_on"] = relay_schedule_on;
+  json["relay_schedule_off"] = relay_schedule_off;
   serializeJson(json, file);
   file.close();
 

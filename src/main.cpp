@@ -63,7 +63,9 @@ void setup() {
 }
 
 void loop() {
-  if (stored_config.staConfigRenewed) {
+  if (stored_config.staConfigRenewed && stored_config.wifi_sta_ssid.length() > 0 &&
+      stored_config.wifi_sta_password.length() > 0) {
+    // 如果配置了新的 WiFi 信息，尝试连接
     Serial.println("===[Loop] WiFi config renewed===");
     Serial.println("Stored: SSID: " + stored_config.wifi_sta_ssid +
                    ", Password: " + stored_config.wifi_sta_password);

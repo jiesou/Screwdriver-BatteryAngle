@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useConfigService } from './services/configService';
 import { useStatusService } from './services/statusService';
 import type { DeviceConfig, DeviceStatus } from './types';
@@ -35,6 +35,11 @@ const loadConfig = async () => {
   try {
     const config = await fetchConfig();
     deviceConfig.value = { ...deviceConfig.value, ...config };
+
+    relayScheduleText.value.on = new Date(deviceConfig.value.relay_schedule_on * 1000).toISOString().slice(11, 19);
+    console.log(deviceConfig.value.relay_schedule_on);
+    relayScheduleText.value.off = new Date(deviceConfig.value.relay_schedule_off * 1000).toISOString().slice(11, 19);
+    console.log(deviceConfig.value.relay_schedule_off);
   } catch (error) {
     snackbar({ message: '加载配置失败，请检查网络连接或设备状态。' });
     console.error("Error loading config:", error);
@@ -86,7 +91,7 @@ const reconnectStatus = async () => {
   });
 };
 
-// relayScheduleText 数据稳定之后自动提交配置
+// relayScheduleText 数据更新之后自动提交配置
 watch(relayScheduleText, (newValue) => {
   if (newValue.on && newValue.off) {
     deviceConfig.value.relay_schedule_on = new Date(`1970-01-01T${newValue.on}Z`).getTime() / 1000;
@@ -99,6 +104,7 @@ watch(relayScheduleText, (newValue) => {
 //   relayScheduleText.value.on = new Date(newValue.relay_schedule_on * 1000).toTimeString().slice(0, 8);
 //   relayScheduleText.value.off = new Date(newValue.relay_schedule_off * 1000).toTimeString().slice(0, 8);
 // }, { deep: true });
+
 
 onMounted(() => {
   loadConfig();
@@ -129,6 +135,14 @@ import 'mdui/components/linear-progress.js';
 
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
 
+
+
+const positionInCycle = computed(() => {
+  if (!deviceStatus.value || !deviceConfig.value) return 0;
+  const cycleDuration = deviceConfig.value.relay_schedule_on + deviceConfig.value.relay_schedule_off;
+  const elapsedSeconds = deviceStatus.value.millis / 1000;
+  return elapsedSeconds % cycleDuration;
+});
 </script>
 
 <template>
@@ -232,9 +246,23 @@ import zhCN from 'ant-design-vue/es/locale/zh_CN';
               关闭时间：
               <a-time-picker v-model:value="relayScheduleText.off" value-format="HH:mm:ss" />
             </div>
-            <mdui-linear-progress v-if="deviceStatus"
-              :value="deviceStatus.secs % (deviceConfig.relay_schedule_on + deviceConfig.relay_schedule_off)"
-              :max="deviceConfig.relay_schedule_on + deviceConfig.relay_schedule_off"></mdui-linear-progress>
+            <div v-if="deviceStatus">
+              <!-- 开启时的进度条 -->
+              <div v-if="positionInCycle < deviceConfig.relay_schedule_on"
+                style="display:flex; flex-direction: column; gap: 10px;">
+                距离关闭
+                <mdui-linear-progress :value="deviceConfig.relay_schedule_on - positionInCycle"
+                  :max="deviceConfig.relay_schedule_on">
+                </mdui-linear-progress>
+              </div>
+              <!-- 关闭时的进度条 -->
+              <div v-else style="display:flex; flex-direction: column; gap: 10px;">
+                距离开启
+                <mdui-linear-progress :value="positionInCycle - deviceConfig.relay_schedule_on"
+                  :max="deviceConfig.relay_schedule_off">
+                </mdui-linear-progress>
+              </div>
+            </div>
           </mdui-card-content>
         </mdui-card>
       </div>

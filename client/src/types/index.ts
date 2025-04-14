@@ -6,7 +6,7 @@ export interface DeviceConfig {
 }
 
 export interface DeviceStatus {
-  secs: number;
+  millis: number; // 设备运行时间，单位 毫秒
   sta_conn_status: string;
   ip?: string;
   frequency?: string;
