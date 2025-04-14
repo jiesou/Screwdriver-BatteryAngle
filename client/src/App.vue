@@ -15,7 +15,13 @@ const deviceConfig = ref<DeviceConfig>({
 });
 const deviceStatus = ref<DeviceStatus | null>(null);
 const wifiNetworks = ref<string[]>([]);
-const isConnecting = ref<boolean>(false);
+const isConnecting = ref<{
+  config: boolean
+  status: boolean
+}>({
+  config: true,
+  status: true
+});
 const wifiDropdownOpen = ref<boolean>(false);
 const relaySwitchState = ref<boolean>(false);
 const relayScheduleText = ref<{
@@ -33,7 +39,10 @@ const { connectStatusTo, disconnectStatusService } = useStatusService();
 // 加载配置
 const loadConfig = async () => {
   try {
+    isConnecting.value.config = true;
     const config = await fetchConfig();
+    isConnecting.value.config = false;
+
     deviceConfig.value = { ...deviceConfig.value, ...config };
 
     relayScheduleText.value.on = new Date(deviceConfig.value.relay_schedule_on * 1000).toISOString().slice(11, 19);
@@ -81,11 +90,11 @@ const updateRelaySwitch = async () => {
 
 // 重新连接状态
 const reconnectStatus = async () => {
-  isConnecting.value = true;
+  isConnecting.value.status = true;
   disconnectStatusService();
 
   await connectStatusTo((status: DeviceStatus) => {
-    isConnecting.value = false;
+    isConnecting.value.status = false;
     deviceStatus.value = status;
     relaySwitchState.value = status.relay_state;
   });
@@ -107,8 +116,8 @@ watch(relayScheduleText, (newValue) => {
 
 
 onMounted(() => {
-  loadConfig();
   reconnectStatus();
+  loadConfig();
 });
 
 import '@mdui/icons/power.js';
@@ -151,7 +160,7 @@ const positionInCycle = computed(() => {
       <mdui-top-app-bar-title>BatteryAngle 配置</mdui-top-app-bar-title>
       <span style="display: flex; align-items: center;">
         重新连接
-        <mdui-button-icon @click="reconnectStatus" :loading="isConnecting">
+        <mdui-button-icon @click="reconnectStatus(); loadConfig();" :loading="isConnecting.status || isConnecting.config">
           <mdui-icon-refresh></mdui-icon-refresh>
         </mdui-button-icon>
       </span>
@@ -164,24 +173,50 @@ const positionInCycle = computed(() => {
             <h2>WiFi 配置</h2>
             <!-- WiFi 信息 -->
             <span style="display: flex; align-items: center; gap: 8px;">
-              <!-- 状态未知组件 -->
-              <span v-if="!deviceStatus" class="wifi-status-label">
-                <mdui-icon-wifi-find></mdui-icon-wifi-find>
-                <span style="color: rgb(var(--mdui-color-warnin)g)">状态未知</span>
-              </span>
-
-              <!-- 已连接组件 -->
-              <span v-else-if="deviceStatus.sta_conn_status === '已连接'" class="wifi-status-label">
-                <mdui-icon-wifi></mdui-icon-wifi>
-                <div style="color: rgb(var(--mdui-color-succes)s)">已连接</div>
-              </span>
-
-              <!-- 未连接组件 -->
-              <span v-else class="wifi-status-label">
-                <mdui-icon-wifi-off></mdui-icon-wifi-off>
-                <span style="color: rgb(var(--mdui-color-error))">未连接</span>
-              </span>
-
+              <template v-if="!deviceStatus">
+              <mdui-icon-wifi-find style="color: gray;"></mdui-icon-wifi-find>
+              <span>无状态</span>
+              </template>
+              <template v-else-if="deviceStatus.sta_conn_status === 3">
+                <mdui-icon-wifi style="color: green;"></mdui-icon-wifi>
+                <span>已连接</span>
+              </template>
+              <template v-else-if="deviceStatus.sta_conn_status === 255">
+                <mdui-icon-wifi-off style="color: gray;"></mdui-icon-wifi-off>
+                <span>没有 WiFi shield</span>
+              </template>
+              <template v-else-if="deviceStatus.sta_conn_status === 0">
+                <mdui-icon-wifi-find style="color: chocolate;"></mdui-icon-wifi-find>
+                <span>正在扫描</span>
+              </template>
+              <template v-else-if="deviceStatus.sta_conn_status === 1">
+                <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
+                <span>没有可用 SSID</span>
+              </template>
+              <template v-else-if="deviceStatus.sta_conn_status === 2">
+                <mdui-icon-wifi-find style="color: blue;"></mdui-icon-wifi-find>
+                <span>扫描完成</span>
+              </template>
+              <template v-else-if="deviceStatus.sta_conn_status === 4">
+                <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
+                <span>连接失败</span>
+              </template>
+              <template v-else-if="deviceStatus.sta_conn_status === 5">
+                <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
+                <span>连接丢失</span>
+              </template>
+              <template v-else-if="deviceStatus.sta_conn_status === 6">
+                <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
+                <span>已断开连接</span>
+              </template>
+              <template v-else-if="deviceStatus.sta_conn_status === 7">
+                <mdui-icon-wifi-find style="color: gray;"></mdui-icon-wifi-find>
+                <span>正在更新连接</span>
+              </template>
+              <template v-else>
+                <mdui-icon-wifi-find style="color: gray;"></mdui-icon-wifi-find>
+                <span>处理中</span>
+              </template>
               <span>{{ deviceStatus?.ip || '--' }}</span>
             </span>
             <!-- WiFi 配置 -->
@@ -212,7 +247,7 @@ const positionInCycle = computed(() => {
           </mdui-card-content>
         </mdui-card>
 
-        <!-- 电源控制卡片 -->
+        <!-- 电源控制 -->
         <mdui-card class="power-card" clickable
           @click="relaySwitchState = !relaySwitchState; updateRelaySwitch(); reconnectStatus();">
           <mdui-card-content class="card-content">
@@ -227,10 +262,11 @@ const positionInCycle = computed(() => {
               <div style="font-size: larger;">已开启</div>
               <div>频率：{{ deviceStatus?.frequency || '--' }}</div>
             </div>
+            
           </mdui-card-content>
         </mdui-card>
 
-        <!-- 状态卡片 -->
+        <!-- 周期控制 -->
         <mdui-card class="schedule-card">
           <mdui-card-content class="card-content" style="min-width: 300px;">
             <div style="display: flex; justify-content: space-between; align-items: end;">
@@ -240,11 +276,11 @@ const positionInCycle = computed(() => {
             </div>
             <div class="mdui-typo mdui-typo-title">
               开启时间：
-              <a-time-picker v-model:value="relayScheduleText.on" value-format="HH:mm:ss" />
+              <a-time-picker v-model:value="relayScheduleText.on" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss" :showNow="false" />
             </div>
             <div class="mdui-typo mdui-typo-title">
               关闭时间：
-              <a-time-picker v-model:value="relayScheduleText.off" value-format="HH:mm:ss" />
+              <a-time-picker v-model:value="relayScheduleText.off" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss" :showNow="false" />
             </div>
             <div v-if="deviceStatus">
               <!-- 开启时的进度条 -->

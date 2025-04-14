@@ -46,31 +46,29 @@ void setup() {
   wifiManager.onConnect([]() {
     Serial.println("Connected to WiFi");
     Serial.println("IP: " + wifiManager.getLocalIP());
-    stored_config.staConnStatus = "已连接";
+    
     stored_config.save();
     Serial.println("Connected to WiFi and saved");
   });
   wifiManager.onDisconnect([]() {
-    stored_config.staConnStatus = "连接断开，将不会保存";
     stored_config.staConfigRenewed = false;
     Serial.println("Disconnected from WiFi");
-  });
-  wifiManager.onConnectionError([](const std::string &message) {
-    stored_config.staConnStatus = String("连接错误 ") + message.c_str();
-    stored_config.staConfigRenewed = false;
-    Serial.println("WiFi connect error: " + String(message.c_str()));
   });
 }
 
 void loop() {
-  if (stored_config.staConfigRenewed && stored_config.wifi_sta_ssid.length() > 0 &&
-      stored_config.wifi_sta_password.length() > 0) {
+  if (stored_config.wifi_sta_ssid.length() < 1 && WiFi.isConnected()) {
+    // 如果没有配置 WiFi 信息，且当前连接了 WiFi，断开连接
+    Serial.println("===[Loop] No WiFi config, disconnecting from WiFi===");
+    WiFi.disconnect(true);
+  }
+  
+  if (stored_config.staConfigRenewed) {
     // 如果配置了新的 WiFi 信息，尝试连接
     Serial.println("===[Loop] WiFi config renewed===");
     Serial.println("Stored: SSID: " + stored_config.wifi_sta_ssid +
                    ", Password: " + stored_config.wifi_sta_password);
     stored_config.staConfigRenewed = false;
-    stored_config.staConnStatus = "连接中";
     wifiManager.connectToWiFi(stored_config.wifi_sta_ssid,
                               stored_config.wifi_sta_password);
   }

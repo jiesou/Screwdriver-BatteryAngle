@@ -21,7 +21,6 @@ public:
   bool relayState = true;
   bool buttonPressed = false;
   bool staConfigRenewed = false;
-  String staConnStatus = "--";
 };
 
 extern StoredConfig stored_config;

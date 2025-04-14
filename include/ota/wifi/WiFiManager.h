@@ -17,11 +17,9 @@ public:
     // 事件回调
     using ConnectionCallback = std::function<void()>;
     using DisconnectionCallback = std::function<void()>;
-    using ConnectionErrorCallback = std::function<void(const std::string &)>;
 
     void onConnect(ConnectionCallback cb) { _onConnect = cb; }
     void onDisconnect(DisconnectionCallback cb) { _onDisconnect = cb; }
-    void onConnectionError(ConnectionErrorCallback cb) { _onConnectionError = cb; }
 
 private:
     static void onWiFiEvent(WiFiEvent_t event);
@@ -29,6 +27,5 @@ private:
 
     ConnectionCallback _onConnect;
     DisconnectionCallback _onDisconnect;
-    ConnectionErrorCallback _onConnectionError;
     bool _isConnected;
 };

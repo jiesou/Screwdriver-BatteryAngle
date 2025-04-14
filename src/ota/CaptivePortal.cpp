@@ -31,7 +31,7 @@ void CaptivePortal::updateStatusChange() {
 
   JsonDocument doc;
   doc["millis"] = currentMillis;
-  doc["sta_conn_status"] = stored_config.staConnStatus;
+  doc["sta_conn_status"] = WiFi.status(); 
   doc["ip"] = WiFi.localIP().toString();
   doc["frequency"] = current_processor.frequency;
   doc["btn_pressed"] = stored_config.buttonPressed;
