@@ -101,7 +101,7 @@ const reconnectStatus = async () => {
 };
 
 // relayScheduleText 数据更新之后自动提交配置
-watch(relayScheduleText, (newValue) => {
+watch(relayScheduleText.value, (newValue) => {
   if (newValue.on && newValue.off) {
     deviceConfig.value.relay_schedule_on = new Date(`1970-01-01T${newValue.on}Z`).getTime() / 1000;
     deviceConfig.value.relay_schedule_off = new Date(`1970-01-01T${newValue.off}Z`).getTime() / 1000;
@@ -152,6 +152,12 @@ const positionInCycle = computed(() => {
   const elapsedSeconds = deviceStatus.value.millis / 1000;
   return elapsedSeconds % cycleDuration;
 });
+
+const handleRelayScheduleBySwitch = (event: Event) => {
+  const isChecked = (event.target as HTMLInputElement).checked;
+  relayScheduleText.value.on = isChecked ? "00:01:00" : "00:00:00";
+  relayScheduleText.value.off = isChecked ? "00:01:00" : "00:00:00";
+};
 </script>
 
 <template>
@@ -160,7 +166,8 @@ const positionInCycle = computed(() => {
       <mdui-top-app-bar-title>BatteryAngle 配置</mdui-top-app-bar-title>
       <span style="display: flex; align-items: center;">
         重新连接
-        <mdui-button-icon @click="reconnectStatus(); loadConfig();" :loading="isConnecting.status || isConnecting.config">
+        <mdui-button-icon @click="reconnectStatus(); loadConfig();"
+          :loading="isConnecting.status || isConnecting.config">
           <mdui-icon-refresh></mdui-icon-refresh>
         </mdui-button-icon>
       </span>
@@ -174,8 +181,8 @@ const positionInCycle = computed(() => {
             <!-- WiFi 信息 -->
             <span style="display: flex; align-items: center; gap: 8px;">
               <template v-if="!deviceStatus">
-              <mdui-icon-wifi-find style="color: gray;"></mdui-icon-wifi-find>
-              <span>无状态</span>
+                <mdui-icon-wifi-find style="color: gray;"></mdui-icon-wifi-find>
+                <span>无状态</span>
               </template>
               <template v-else-if="deviceStatus.sta_conn_status === 3">
                 <mdui-icon-wifi style="color: green;"></mdui-icon-wifi>
@@ -262,7 +269,7 @@ const positionInCycle = computed(() => {
               <div style="font-size: larger;">已开启</div>
               <div>频率：{{ deviceStatus?.frequency || '--' }}</div>
             </div>
-            
+
           </mdui-card-content>
         </mdui-card>
 
@@ -271,29 +278,31 @@ const positionInCycle = computed(() => {
           <mdui-card-content class="card-content" style="min-width: 300px;">
             <div style="display: flex; justify-content: space-between; align-items: end;">
               <h2>周期控制</h2>
-              <a-tag v-if="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off" color="blue">已启用</a-tag>
-              <a-tag v-else color="red">未启用</a-tag>
+              <mdui-switch :checked="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off"
+                @change="handleRelayScheduleBySwitch"></mdui-switch>
             </div>
             <div class="mdui-typo mdui-typo-title">
-              开启时间：
-              <a-time-picker v-model:value="relayScheduleText.on" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss" :showNow="false" />
+              开启时长：
+              <a-time-picker v-model:value="relayScheduleText.on" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
+                :showNow="false" :allowClear="false" />
             </div>
             <div class="mdui-typo mdui-typo-title">
-              关闭时间：
-              <a-time-picker v-model:value="relayScheduleText.off" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss" :showNow="false" />
+              关闭时长：
+              <a-time-picker v-model:value="relayScheduleText.off" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
+                :showNow="false" :allowClear="false" />
             </div>
-            <div v-if="deviceStatus">
+            <div v-if="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off">
               <!-- 开启时的进度条 -->
               <div v-if="positionInCycle < deviceConfig.relay_schedule_on"
                 style="display:flex; flex-direction: column; gap: 10px;">
-                距离关闭
+                距离关闭 {{ new Date((deviceConfig.relay_schedule_on - positionInCycle) * 1000).toISOString().substr(11, 8) }}
                 <mdui-linear-progress :value="deviceConfig.relay_schedule_on - positionInCycle"
                   :max="deviceConfig.relay_schedule_on">
                 </mdui-linear-progress>
               </div>
               <!-- 关闭时的进度条 -->
               <div v-else style="display:flex; flex-direction: column; gap: 10px;">
-                距离开启
+                距离开启 {{ new Date((deviceConfig.relay_schedule_off - (positionInCycle - deviceConfig.relay_schedule_on)) * 1000).toISOString().substr(11, 8) }}
                 <mdui-linear-progress :value="positionInCycle - deviceConfig.relay_schedule_on"
                   :max="deviceConfig.relay_schedule_off">
                 </mdui-linear-progress>
