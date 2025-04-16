@@ -109,12 +109,6 @@ watch(relayScheduleText.value, (newValue) => {
   }
 }, { deep: true });
 
-// watch(deviceConfig, (newValue) => {
-//   relayScheduleText.value.on = new Date(newValue.relay_schedule_on * 1000).toTimeString().slice(0, 8);
-//   relayScheduleText.value.off = new Date(newValue.relay_schedule_off * 1000).toTimeString().slice(0, 8);
-// }, { deep: true });
-
-
 onMounted(() => {
   reconnectStatus();
   loadConfig();
