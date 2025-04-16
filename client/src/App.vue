@@ -295,14 +295,16 @@ const handleRelayScheduleBySwitch = (event: Event) => {
               <!-- 开启时的进度条 -->
               <div v-if="positionInCycle < deviceConfig.relay_schedule_on"
                 style="display:flex; flex-direction: column; gap: 10px;">
-                距离关闭 {{ new Date((deviceConfig.relay_schedule_on - positionInCycle) * 1000).toISOString().substr(11, 8) }}
+                {{ new Date((deviceConfig.relay_schedule_on - positionInCycle) * 1000).toISOString().substr(11, 8) }}
+                后开启
                 <mdui-linear-progress :value="deviceConfig.relay_schedule_on - positionInCycle"
                   :max="deviceConfig.relay_schedule_on">
                 </mdui-linear-progress>
               </div>
               <!-- 关闭时的进度条 -->
               <div v-else style="display:flex; flex-direction: column; gap: 10px;">
-                距离开启 {{ new Date((deviceConfig.relay_schedule_off - (positionInCycle - deviceConfig.relay_schedule_on)) * 1000).toISOString().substr(11, 8) }}
+                {{ new Date((deviceConfig.relay_schedule_off - (positionInCycle - deviceConfig.relay_schedule_on)) * 1000).toISOString().substr(11, 8) }}
+                后开启
                 <mdui-linear-progress :value="positionInCycle - deviceConfig.relay_schedule_on"
                   :max="deviceConfig.relay_schedule_off">
                 </mdui-linear-progress>

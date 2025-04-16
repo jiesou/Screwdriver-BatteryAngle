@@ -12,7 +12,7 @@ public:
   void update();
   void applyHW();
 
-  bool relayState = false;
+  bool relayState = true; // 上电默认开启
 
   void setRelayState(bool state) { relayState = state; }
   bool getRelayState() { return relayState; }
