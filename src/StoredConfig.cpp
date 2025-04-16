@@ -42,8 +42,8 @@ JsonDocument StoredConfig::load() {
   }
   wifi_sta_ssid = json["wifi_sta_ssid"].as<String>();
   wifi_sta_password = json["wifi_sta_password"].as<String>();
-  relay_schedule_on = json["schedule_on"].as<unsigned long>();
-  relay_schedule_off = json["schedule_off"].as<unsigned long>();
+  relay_schedule_on = json["relay_schedule_on"].as<unsigned long>();
+  relay_schedule_off = json["relay_schedule_off"].as<unsigned long>();
   file.close();
 
   Serial.println("[StoredConfig] Config loaded");

@@ -13,6 +13,7 @@
 #include "StoredConfig.h"
 #include "CurrentProcessor.h"
 #include "RelayControler.h"
+#include "InteractiveInterface.h"
 #include "ota/CaptivePortal.h"
 #include "ota/OTAHandler.h"
 #include "ota/wifi/WiFiManager.h"
@@ -42,6 +43,8 @@ void setup() {
   Serial.println("===Current Processor started===");
   relay_controler.begin();
   Serial.println("===Relay Controler started===");
+  interactive_interface.begin();
+  Serial.println("===Interactive Interface started===");
 
   wifiManager.onConnect([]() {
     Serial.println("Connected to WiFi");
@@ -73,7 +76,8 @@ void loop() {
                               stored_config.wifi_sta_password);
   }
   otaHandler.update();
-  current_processor.update();
   captivePortal.update();
+  current_processor.update();
   relay_controler.update();
+  interactive_interface.update();
 }

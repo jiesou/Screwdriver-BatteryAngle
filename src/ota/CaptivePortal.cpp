@@ -1,8 +1,10 @@
 #include "ota/CaptivePortal.h"
-#include "ArduinoJson.h"
-#include "CurrentProcessor.h"
-#include "LittleFS.h"
+#include <ArduinoJson.h>
+#include <LittleFS.h>
 #include "StoredConfig.h"
+#include "CurrentProcessor.h"
+#include "RelayControler.h"
+#include "InteractiveInterface.h"
 
 CaptivePortal::CaptivePortal()
     : server(80), status_stream_events("/api/status") {}
@@ -34,8 +36,8 @@ void CaptivePortal::updateStatusChange() {
   doc["sta_conn_status"] = WiFi.status(); 
   doc["ip"] = WiFi.localIP().toString();
   doc["frequency"] = current_processor.frequency;
-  doc["btn_pressed"] = stored_config.buttonPressed;
-  doc["relay_state"] = stored_config.relayState;
+  doc["btn_pressed"] = interactive_interface.button_pressed;
+  doc["relay_state"] = relay_controler.relayState;
 
   String output;
   serializeJson(doc, output);
@@ -142,7 +144,7 @@ void CaptivePortal::setupRequestHandlers() {
         deserializeJson(doc, data, len);
         bool relay_switch = doc["relay_switch"];
         Serial.println("Got new relay switch state: " + String(relay_switch));
-        stored_config.relayState = (relay_switch == true); // 避免空值
+        relay_controler.relayState = (relay_switch == true); // 避免空值
         request->send(200, "application/json", "{\"message\":\"已更新\"}");
       });
 
