@@ -36,7 +36,7 @@ void CaptivePortal::updateStatusChange() {
   doc["sta_conn_status"] = WiFi.status(); 
   doc["ip"] = WiFi.localIP().toString();
   doc["frequency"] = current_processor.frequency;
-  doc["btn_pressed"] = interactive_interface.button_pressed;
+  doc["btn_pressed"] = interactive_interface.button_pressed_down;
   doc["relay_state"] = relay_controler.relayState;
 
   String output;
