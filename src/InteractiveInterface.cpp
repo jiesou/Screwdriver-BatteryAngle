@@ -12,7 +12,10 @@ void InteractiveInterface::begin() {
 
 void InteractiveInterface::update() {
   // 更新 LED 状态
-  if (led_blinking) whenLedBlinking();
+  led_state = relay_controler.relayState;
+  if (led_blinking)
+    whenLedBlinking();
+    
   digitalWrite(LED_PIN, led_state ? LOW : HIGH); // 外部上拉
 
   unsigned long currentMillis = millis();
@@ -48,12 +51,14 @@ void InteractiveInterface::onButtonClicked() {
   if (stored_config.relay_schedule_on != 0 &&
       stored_config.relay_schedule_off != 0) {
     led_blink_async();
+  } else {
+    relay_controler.relayState = !relay_controler.relayState; // 切换继电器状态
   }
-  relay_controler.relayState = !relay_controler.relayState; // 切换继电器状态
 }
 
 void InteractiveInterface::led_blink_async() {
-  if (led_blinking) return;
+  if (led_blinking)
+    return;
   led_blinking = true;
   led_blink_start = millis();
   led_blink_start_state = led_state;

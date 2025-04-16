@@ -11,7 +11,8 @@ const deviceConfig = ref<DeviceConfig>({
   wifi_sta_ssid: '',
   wifi_sta_password: '',
   relay_schedule_on: 0,
-  relay_schedule_off: 0
+  relay_schedule_off: 0,
+  lbm_smart_enabled: false,
 });
 const deviceStatus = ref<DeviceStatus | null>(null);
 const wifiNetworks = ref<string[]>([]);
@@ -46,9 +47,7 @@ const loadConfig = async () => {
     deviceConfig.value = { ...deviceConfig.value, ...config };
 
     relayScheduleText.value.on = new Date(deviceConfig.value.relay_schedule_on * 1000).toISOString().slice(11, 19);
-    console.log(deviceConfig.value.relay_schedule_on);
     relayScheduleText.value.off = new Date(deviceConfig.value.relay_schedule_off * 1000).toISOString().slice(11, 19);
-    console.log(deviceConfig.value.relay_schedule_off);
   } catch (error) {
     snackbar({ message: '加载配置失败，请检查网络连接或设备状态。' });
     console.error("Error loading config:", error);
@@ -135,6 +134,7 @@ import 'mdui/components/circular-progress.js';
 import 'mdui/components/slider.js';
 import 'mdui/components/chip.js';
 import 'mdui/components/linear-progress.js';
+import 'mdui/components/tooltip.js';
 
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
 
@@ -272,18 +272,28 @@ const handleRelayScheduleBySwitch = (event: Event) => {
           <mdui-card-content class="card-content" style="min-width: 300px;">
             <div style="display: flex; justify-content: space-between; align-items: end;">
               <h2>周期控制</h2>
-              <mdui-switch :checked="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off"
-                @change="handleRelayScheduleBySwitch"></mdui-switch>
+              <mdui-switch :checked="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off && !deviceConfig.lbm_smart_enabled"
+                @change="handleRelayScheduleBySwitch" :disabled="deviceConfig.lbm_smart_enabled"></mdui-switch>
             </div>
+
+            <mdui-tooltip variant="rich">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                LBM Smart™ 智能充电控制
+                <mdui-switch :checked="deviceConfig.lbm_smart_enabled"
+                  @change="(event: Event) => { deviceConfig.lbm_smart_enabled = (event.target as HTMLInputElement).checked; submitConfig(); }"></mdui-switch>
+              </div>
+              <div slot="headline"><strong>[ Large Battery Model ] Smart™</strong></div>
+              <div slot="content">通过动态电流感知，自动识别手机电池特性，并实时调整充放电时间。</div>
+            </mdui-tooltip>
             <div class="mdui-typo mdui-typo-title">
               开启时长：
               <a-time-picker v-model:value="relayScheduleText.on" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
-                :showNow="false" :allowClear="false" />
+                :showNow="false" :allowClear="false" :disabled="deviceConfig.lbm_smart_enabled" />
             </div>
             <div class="mdui-typo mdui-typo-title">
               关闭时长：
               <a-time-picker v-model:value="relayScheduleText.off" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
-                :showNow="false" :allowClear="false" />
+                :showNow="false" :allowClear="false" :disabled="deviceConfig.lbm_smart_enabled"  />
             </div>
             <div v-if="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off">
               <!-- 开启时的进度条 -->
@@ -297,7 +307,8 @@ const handleRelayScheduleBySwitch = (event: Event) => {
               </div>
               <!-- 关闭时的进度条 -->
               <div v-else style="display:flex; flex-direction: column; gap: 10px;">
-                {{ new Date((deviceConfig.relay_schedule_off - (positionInCycle - deviceConfig.relay_schedule_on)) * 1000).toISOString().substr(11, 8) }}
+                {{ new Date((deviceConfig.relay_schedule_off - (positionInCycle - deviceConfig.relay_schedule_on)) *
+                1000).toISOString().substr(11, 8) }}
                 后开启
                 <mdui-linear-progress :value="positionInCycle - deviceConfig.relay_schedule_on"
                   :max="deviceConfig.relay_schedule_off">
@@ -313,6 +324,10 @@ const handleRelayScheduleBySwitch = (event: Event) => {
 
 
 <style scoped>
+* {
+  font-family: sans-serif;
+}
+
 h2 {
   margin-bottom: 0;
 }

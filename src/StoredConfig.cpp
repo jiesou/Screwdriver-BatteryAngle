@@ -15,6 +15,9 @@ bool StoredConfig::save() {
   json["wifi_sta_password"] = wifi_sta_password;
   json["relay_schedule_on"] = relay_schedule_on;
   json["relay_schedule_off"] = relay_schedule_off;
+  json["lbm_smart_enabled"] = lbm_smart_enabled;
+  json["lbm_smart_upper_ferq"] = lbm_smart_upper_ferq;
+  json["lbm_smart_lower_time"] = lbm_smart_lower_time;
   serializeJson(json, file);
   file.close();
 
@@ -44,6 +47,9 @@ JsonDocument StoredConfig::load() {
   wifi_sta_password = json["wifi_sta_password"].as<String>();
   relay_schedule_on = json["relay_schedule_on"].as<unsigned long>();
   relay_schedule_off = json["relay_schedule_off"].as<unsigned long>();
+  lbm_smart_enabled = json["lbm_smart_enabled"].as<bool>();
+  lbm_smart_upper_ferq = json["lbm_smart_upper_ferq"].as<float>();
+  lbm_smart_lower_time = json["lbm_smart_lower_time"].as<float>();
   file.close();
 
   Serial.println("[StoredConfig] Config loaded");

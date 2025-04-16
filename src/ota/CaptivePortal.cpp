@@ -38,6 +38,7 @@ void CaptivePortal::updateStatusChange() {
   doc["frequency"] = current_processor.frequency;
   doc["btn_pressed"] = interactive_interface.button_pressed_down;
   doc["relay_state"] = relay_controler.relayState;
+  doc["lbm_smart_info"] = relay_controler.lbmState;
 
   String output;
   serializeJson(doc, output);
@@ -84,6 +85,12 @@ void CaptivePortal::setupRequestHandlers() {
             doc["relay_schedule_on"].as<unsigned long>();
         stored_config.relay_schedule_off =
             doc["relay_schedule_off"].as<unsigned long>();
+        stored_config.lbm_smart_enabled =
+            doc["lbm_smart_enabled"].as<bool>();
+        stored_config.lbm_smart_upper_ferq =
+            doc["lbm_smart_upper_ferq"].as<float>();
+        stored_config.lbm_smart_lower_time =
+            doc["lbm_smart_lower_time"].as<unsigned long>();
         stored_config.staConfigRenewed = true;
 
         stored_config.save();

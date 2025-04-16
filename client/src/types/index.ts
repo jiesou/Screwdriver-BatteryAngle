@@ -3,6 +3,7 @@ export interface DeviceConfig {
   wifi_sta_password: string;
   relay_schedule_on: number; // 单位秒。ts 中的 number 是 64 位 IEEE 754 双精度浮点数。esp8266 中采用 unsigned long 是 32 位整数
   relay_schedule_off: number;
+  lbm_smart_enabled: boolean;
 }
 
 enum wl_status_t {
