@@ -290,7 +290,7 @@ const handleRelayScheduleBySwitch = (event: Event) => {
               <div v-if="positionInCycle < deviceConfig.relay_schedule_on"
                 style="display:flex; flex-direction: column; gap: 10px;">
                 {{ new Date((deviceConfig.relay_schedule_on - positionInCycle) * 1000).toISOString().substr(11, 8) }}
-                后开启
+                后关闭
                 <mdui-linear-progress :value="deviceConfig.relay_schedule_on - positionInCycle"
                   :max="deviceConfig.relay_schedule_on">
                 </mdui-linear-progress>
