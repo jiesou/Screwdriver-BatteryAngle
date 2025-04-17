@@ -65,4 +65,10 @@ void StoredConfig::init() {
   }
 }
 
+void StoredConfig::clear() {
+  Serial.println("[StoredConfig] clear");
+  LittleFS.remove(STORED_PATH);
+  ESP.restart();
+}
+
 StoredConfig stored_config;

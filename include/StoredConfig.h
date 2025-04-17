@@ -10,6 +10,7 @@ public:
   void init();
   bool save();
   JsonDocument load();
+  void clear();
   JsonDocument json;
 
   // WiFi相关信息

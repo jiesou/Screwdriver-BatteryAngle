@@ -41,8 +41,7 @@ void InteractiveInterface::update() {
     delay(1000);
 
     Serial.println("Long press detected, resetting BatteryAngle...");
-    LittleFS.format(); // 重置 littlefs
-    ESP.restart();     // 重新启动 ESP8266
+    stored_config.clear(); // 清除配置并重启
   }
 }
 
