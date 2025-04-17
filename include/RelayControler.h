@@ -10,13 +10,14 @@ private:
   void applyHW();
   void updateSchedule();
   void updateLbmSmart();
+  unsigned long lbmLastFoundUpperFerq;
   unsigned long lbmLastTurnon = 0;
   unsigned long lbmStartTimeOfCheckingFreq = 0;
 
 public:
   enum lbmState {
-    WAITING_DROPPING,
     WAITING_RISING,
+    WAITING_DROPPING,
     PREPARING_FOR_CHECKING_FREQ,
     CHECKING_FREQ_IN_DROPPING
   } lbmState = WAITING_RISING;

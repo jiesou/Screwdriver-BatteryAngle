@@ -39,11 +39,22 @@ void RelayControler::updateLbmSmart() {
 
   switch (lbmState) {
   case WAITING_RISING:
-    if (current_processor.frequency < stored_config.lbm_smart_upper_ferq) {
-      // 如果电流频率小于 upper，则关闭，并等待电池耗电
+    // 如果电流频率超过阈值，重置计时器并继续等待
+    if (current_processor.frequency >= stored_config.lbm_smart_upper_ferq) {
+      lbmLastFoundUpperFerq = 0;
+      break;
+    } else if (lbmLastFoundUpperFerq == 0) {
+      // 频率低于阈值，开始计时或检查消抖时间
+      lbmLastFoundUpperFerq = millis();
+      break;
+    }
+    // 检查是否满足消抖条件（持续1秒）
+    if (millis() - lbmLastFoundUpperFerq >= 1000) {
+      // 频率持续低于阈值，切换状态
       relayState = false;
       lbmLastTurnon = millis();
       lbmState = WAITING_DROPPING;
+      lbmLastFoundUpperFerq = 0;
     }
     break;
   case WAITING_DROPPING:
@@ -69,7 +80,8 @@ void RelayControler::updateLbmSmart() {
       break;
     }
     if (millis() - lbmStartTimeOfCheckingFreq > 1000 * 30) {
-      // 持续检测 30s 后（准备时间 25s，监测 5s），不再检查频率，继续等待电池耗电
+      // 持续检测 30s 后（准备时间 25s，监测
+      // 5s），不再检查频率，继续等待电池耗电
       relayState = false;
       lbmLastTurnon = millis();
       lbmState = WAITING_DROPPING;

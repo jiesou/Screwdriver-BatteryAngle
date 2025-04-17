@@ -13,9 +13,9 @@ void InteractiveInterface::begin() {
 void InteractiveInterface::update() {
   // 更新 LED 状态
   led_state = relay_controler.relayState;
-  if (led_blinking)
+  if (led_blinking_duration)
     whenLedBlinking();
-    
+
   digitalWrite(LED_PIN, led_state ? LOW : HIGH); // 外部上拉
 
   unsigned long currentMillis = millis();
@@ -50,16 +50,20 @@ void InteractiveInterface::onButtonClicked() {
   // 如果正处于周期控制状态，则闪烁提示灯
   if (stored_config.relay_schedule_on != 0 &&
       stored_config.relay_schedule_off != 0) {
-    led_blink_async();
+    led_blink_async(1000);
+  } else if (stored_config.lbm_smart_enabled) {
+    // 如果正处于 LBM 智能控制状态，则闪烁提示灯，并无论如何切换到充电状态
+    led_blink_async(200);
+    relay_controler.lbmState = RelayControler::lbmState::WAITING_RISING;
   } else {
     relay_controler.relayState = !relay_controler.relayState; // 切换继电器状态
   }
 }
 
-void InteractiveInterface::led_blink_async() {
-  if (led_blinking)
+void InteractiveInterface::led_blink_async(unsigned int duration) {
+  if (led_blinking_duration != 0) // 如果正在闪烁，则不处理
     return;
-  led_blinking = true;
+  led_blinking_duration = duration;
   led_blink_start = millis();
   led_blink_start_state = led_state;
 }
@@ -67,8 +71,8 @@ void InteractiveInterface::led_blink_async() {
 void InteractiveInterface::whenLedBlinking() {
   unsigned long currentMillis = millis();
   unsigned long elapsedMillis = currentMillis - led_blink_start;
-  if (elapsedMillis >= 1000) {
-    led_blinking = false;
+  if (elapsedMillis >= led_blinking_duration) {
+    led_blinking_duration = 0;
     led_state = led_blink_start_state; // 恢复原状态
     return;
   }
