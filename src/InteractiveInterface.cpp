@@ -53,6 +53,7 @@ void InteractiveInterface::onButtonClicked() {
   } else if (stored_config.lbm_smart_enabled) {
     // 如果正处于 LBM 智能控制状态，则闪烁提示灯，并无论如何切换到充电状态
     led_blink_async(200);
+    relay_controler.relayState = true; // 切换到充电状态
     relay_controler.lbmState = RelayControler::lbmState::WAITING_RISING;
   } else {
     relay_controler.relayState = !relay_controler.relayState; // 切换继电器状态
