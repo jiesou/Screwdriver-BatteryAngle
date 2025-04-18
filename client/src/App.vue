@@ -166,87 +166,83 @@ const handleRelayScheduleBySwitch = (event: Event) => {
         </mdui-button-icon>
       </span>
     </mdui-top-app-bar>
-    <div style="max-width: 1000px; margin: 0 auto; padding: 16px;">
+    <div style="max-width: 1000px; margin: auto; padding: 16px;">
       <div style="display: flex; gap: 16px; flex-wrap: wrap;">
         <!-- 配置卡片 -->
-        <mdui-card class="config-card">
+        <!-- <mdui-card class="config-card">
           <mdui-card-content class="card-content">
             <h2>WiFi 配置</h2>
-            <!-- WiFi 信息 -->
             <span style="display: flex; align-items: center; gap: 8px;">
               <template v-if="!deviceStatus">
                 <mdui-icon-wifi-find style="color: gray;"></mdui-icon-wifi-find>
                 <span>无状态</span>
               </template>
-              <template v-else-if="deviceStatus.sta_conn_status === 3">
+<template v-else-if="deviceStatus.sta_conn_status === 3">
                 <mdui-icon-wifi style="color: green;"></mdui-icon-wifi>
                 <span>已连接</span>
               </template>
-              <template v-else-if="deviceStatus.sta_conn_status === 255">
+<template v-else-if="deviceStatus.sta_conn_status === 255">
                 <mdui-icon-wifi-off style="color: gray;"></mdui-icon-wifi-off>
                 <span>没有 WiFi shield</span>
               </template>
-              <template v-else-if="deviceStatus.sta_conn_status === 0">
+<template v-else-if="deviceStatus.sta_conn_status === 0">
                 <mdui-icon-wifi-find style="color: chocolate;"></mdui-icon-wifi-find>
                 <span>正在扫描</span>
               </template>
-              <template v-else-if="deviceStatus.sta_conn_status === 1">
+<template v-else-if="deviceStatus.sta_conn_status === 1">
                 <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
                 <span>没有可用 SSID</span>
               </template>
-              <template v-else-if="deviceStatus.sta_conn_status === 2">
+<template v-else-if="deviceStatus.sta_conn_status === 2">
                 <mdui-icon-wifi-find style="color: blue;"></mdui-icon-wifi-find>
                 <span>扫描完成</span>
               </template>
-              <template v-else-if="deviceStatus.sta_conn_status === 4">
+<template v-else-if="deviceStatus.sta_conn_status === 4">
                 <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
                 <span>连接失败</span>
               </template>
-              <template v-else-if="deviceStatus.sta_conn_status === 5">
+<template v-else-if="deviceStatus.sta_conn_status === 5">
                 <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
                 <span>连接丢失</span>
               </template>
-              <template v-else-if="deviceStatus.sta_conn_status === 6">
+<template v-else-if="deviceStatus.sta_conn_status === 6">
                 <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
                 <span>已断开连接</span>
               </template>
-              <template v-else-if="deviceStatus.sta_conn_status === 7">
+<template v-else-if="deviceStatus.sta_conn_status === 7">
                 <mdui-icon-wifi-find style="color: gray;"></mdui-icon-wifi-find>
                 <span>正在更新连接</span>
               </template>
-              <template v-else>
+<template v-else>
                 <mdui-icon-wifi-find style="color: gray;"></mdui-icon-wifi-find>
                 <span>处理中</span>
               </template>
-              <span>{{ deviceStatus?.ip || '--' }}</span>
-            </span>
-            <!-- WiFi 配置 -->
-            <mdui-dropdown trigger="hover" :open="wifiDropdownOpen" @open="loadWifiNetworks">
-              <mdui-text-field slot="trigger" label="WiFi 网络名称（SSID）" variant="outlined"
-                :value="deviceConfig.wifi_sta_ssid" @input="deviceConfig.wifi_sta_ssid = $event.target.value"
-                @focus="wifiDropdownOpen = true">
-              </mdui-text-field>
-              <mdui-menu>
-                <mdui-menu-item v-if="wifiNetworks.length === 0">
-                  <mdui-circular-progress class="inline-loader" style="height: 1em;"></mdui-circular-progress>
-                  WiFi 扫描中……
-                </mdui-menu-item>
-                <mdui-menu-item v-for="network in wifiNetworks" :key="network"
-                  @click="deviceConfig.wifi_sta_ssid = network">
-                  {{ network }}
-                </mdui-menu-item>
-              </mdui-menu>
-            </mdui-dropdown>
+<span>{{ deviceStatus?.ip || '--' }}</span>
+</span>
+<mdui-dropdown trigger="hover" :open="wifiDropdownOpen" @open="loadWifiNetworks">
+  <mdui-text-field slot="trigger" label="WiFi 网络名称（SSID）" variant="outlined" :value="deviceConfig.wifi_sta_ssid"
+    @input="deviceConfig.wifi_sta_ssid = $event.target.value" @focus="wifiDropdownOpen = true">
+  </mdui-text-field>
+  <mdui-menu>
+    <mdui-menu-item v-if="wifiNetworks.length === 0">
+      <mdui-circular-progress class="inline-loader" style="height: 1em;"></mdui-circular-progress>
+      WiFi 扫描中……
+    </mdui-menu-item>
+    <mdui-menu-item v-for="network in wifiNetworks" :key="network" @click="deviceConfig.wifi_sta_ssid = network">
+      {{ network }}
+    </mdui-menu-item>
+  </mdui-menu>
+</mdui-dropdown>
 
-            <mdui-text-field label="WiFi 网络密码" type="password" variant="outlined" toggle-password
-              :value="deviceConfig.wifi_sta_password" @input="deviceConfig.wifi_sta_password = $event.target.value">
-            </mdui-text-field>
+<mdui-text-field label="WiFi 网络密码" type="password" variant="outlined" toggle-password
+  :value="deviceConfig.wifi_sta_password" @input="deviceConfig.wifi_sta_password = $event.target.value">
+</mdui-text-field>
 
-            <mdui-button color="primary" variant="filled" @click="submitConfig">
-              应用
-            </mdui-button>
-          </mdui-card-content>
-        </mdui-card>
+<mdui-button color="primary" variant="filled" @click="submitConfig">
+  应用
+</mdui-button>
+</mdui-card-content>
+</mdui-card> -->
 
         <!-- 电源控制 -->
         <mdui-card class="power-card" clickable
@@ -254,12 +250,14 @@ const handleRelayScheduleBySwitch = (event: Event) => {
           <mdui-card-content class="card-content">
             <h2>电源控制</h2>
             <div v-if="!relaySwitchState" style="display: flex; flex-direction: column; align-items: center;">
-              <mdui-icon-power-off style="height: 100%; width: 100%; max-width: 10rem;"></mdui-icon-power-off>
+              <mdui-icon-power-off style="height: 100%; width: 100%; max-width: 15rem;"></mdui-icon-power-off>
+              <mdui-switch></mdui-switch>
               <div style="font-size: larger;">已关闭</div>
               <div>频率：{{ deviceStatus?.frequency || '--' }}</div>
             </div>
             <div v-else style="display: flex; flex-direction: column; align-items: center;">
-              <mdui-icon-power style="height: 100%; width: 100%; max-width: 10rem;"></mdui-icon-power>
+              <mdui-icon-power style="height: 100%; width: 100%; max-width: 15rem;"></mdui-icon-power>
+              <mdui-switch checked></mdui-switch>
               <div style="font-size: larger;">已开启</div>
               <div>频率：{{ deviceStatus?.frequency || '--' }}</div>
             </div>
@@ -269,20 +267,21 @@ const handleRelayScheduleBySwitch = (event: Event) => {
 
         <!-- 周期控制 -->
         <mdui-card class="schedule-card">
-          <mdui-card-content class="card-content" style="min-width: 300px;">
+          <mdui-card-content class="card-content">
             <div style="display: flex; justify-content: space-between; align-items: end;">
               <h2>周期控制</h2>
-              <mdui-switch :checked="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off && !deviceConfig.lbm_smart_enabled"
+              <mdui-switch
+                :checked="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off && !deviceConfig.lbm_smart_enabled"
                 @change="handleRelayScheduleBySwitch" :disabled="deviceConfig.lbm_smart_enabled"></mdui-switch>
             </div>
 
             <mdui-tooltip variant="rich">
               <div style="display: flex; align-items: center; gap: 8px;">
-                LBM Smart™ 智能充电控制
+                [ LBM Smart ] 智能充电控制
                 <mdui-switch :checked="deviceConfig.lbm_smart_enabled"
                   @change="(event: Event) => { deviceConfig.lbm_smart_enabled = (event.target as HTMLInputElement).checked; submitConfig(); }"></mdui-switch>
               </div>
-              <div slot="headline"><strong>[ Large Battery Model ] Smart™</strong></div>
+              <div slot="headline"><strong>[ Large Battery Model ] Smart</strong></div>
               <div slot="content">通过动态电流感知，自动识别手机电池特性，并实时调整充放电时间。</div>
             </mdui-tooltip>
             <div class="mdui-typo mdui-typo-title">
@@ -293,7 +292,7 @@ const handleRelayScheduleBySwitch = (event: Event) => {
             <div class="mdui-typo mdui-typo-title">
               关闭时长：
               <a-time-picker v-model:value="relayScheduleText.off" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
-                :showNow="false" :allowClear="false" :disabled="deviceConfig.lbm_smart_enabled"  />
+                :showNow="false" :allowClear="false" :disabled="deviceConfig.lbm_smart_enabled" />
             </div>
             <div v-if="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off">
               <!-- 开启时的进度条 -->
@@ -342,5 +341,27 @@ h2 {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* 基本样式：在宽屏幕(桌面)上保持固定最大宽度 */
+.power-card {
+  min-width: 300px;
+  max-width: 500px;
+}
+
+.schedule-card {
+  min-width: 300px;
+  max-width: 500px;
+}
+
+/* 媒体查询：在窄屏幕(手机)上占满整个宽度 */
+@media (max-width: 1000px) {
+  .power-card {
+    width: 100% !important;
+  }
+  
+  .power-card .card-content {
+    max-width: none !important;
+  }
 }
 </style>
