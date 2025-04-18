@@ -28,8 +28,9 @@ bool StoredConfig::save() {
 JsonDocument StoredConfig::load() {
   if (!LittleFS.exists(STORED_PATH)) {
     Serial.println(
-        "[StoredConfig] No Config file found, return current(empty) json");
+        "[StoredConfig] No Config file found, saving default configuration");
     // return current(empty) json
+    save();
     return json;
   }
   File file = LittleFS.open(STORED_PATH, "r");

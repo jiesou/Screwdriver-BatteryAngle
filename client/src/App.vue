@@ -66,7 +66,19 @@ const loadWifiNetworks = async () => {
 };
 
 
-const submitConfig = async () => {
+// 节流
+let lastCall = 0;
+const throttle = (func: Function, delay: number) => {
+  return function (...args: any[]) {
+    const now = Date.now();
+    if (now - lastCall < delay) return;
+    lastCall = now;
+    return func(...args);
+  };
+};
+
+// 500ms内连续调用只会执行一次
+const submitConfig = throttle(async () => {
   try {
     const result = await setConfig(deviceConfig.value);
     snackbar({ message: result.message });
@@ -74,7 +86,7 @@ const submitConfig = async () => {
     snackbar({ message: '配置失败，请检查网络连接或设备状态。' });
     console.error("Error:", error);
   }
-};
+}, 500);
 
 // 更新继电器开关状态
 const updateRelaySwitch = async () => {
@@ -151,6 +163,28 @@ const handleRelayScheduleBySwitch = (event: Event) => {
   const isChecked = (event.target as HTMLInputElement).checked;
   relayScheduleText.value.on = isChecked ? "00:01:00" : "00:00:00";
   relayScheduleText.value.off = isChecked ? "00:01:00" : "00:00:00";
+};
+const handlePowerSwitchClick = () => {
+  if (deviceConfig.value.relay_schedule_on && deviceConfig.value.relay_schedule_off) {
+    snackbar({ message: "周期控制开启时无法切换电源开关" });
+    return;
+  }
+  if (deviceConfig.value.lbm_smart_enabled) {
+    snackbar({ message: "提示：智能控制已开启，现在切换电源开关会影响其工作"})
+  }
+  relaySwitchState.value = !relaySwitchState.value;
+  updateRelaySwitch();
+  reconnectStatus();
+}
+const handleLbmSmartSwitch = (event: Event) => {
+  const isChecked = (event.target as HTMLInputElement).checked;
+  deviceConfig.value.lbm_smart_enabled = isChecked;
+  relayScheduleText.value.on = "00:00:00";
+  relayScheduleText.value.off = "00:00:00";
+  // 重复提交被节流，导致 string 的更新不触发到 deviceConfig 里，需要自己更新
+  deviceConfig.value.relay_schedule_on = 0;
+  deviceConfig.value.relay_schedule_off = 0;
+  submitConfig();
 };
 </script>
 
@@ -245,8 +279,8 @@ const handleRelayScheduleBySwitch = (event: Event) => {
 </mdui-card> -->
 
         <!-- 电源控制 -->
-        <mdui-card class="power-card" clickable
-          @click="relaySwitchState = !relaySwitchState; updateRelaySwitch(); reconnectStatus();">
+        <mdui-card class="power-card" clickable @click="handlePowerSwitchClick"
+          :disabled="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off">
           <mdui-card-content class="card-content">
             <h2>电源控制</h2>
             <div v-if="!relaySwitchState" style="display: flex; flex-direction: column; align-items: center;">
@@ -270,20 +304,10 @@ const handleRelayScheduleBySwitch = (event: Event) => {
           <mdui-card-content class="card-content">
             <div style="display: flex; justify-content: space-between; align-items: end;">
               <h2>周期控制</h2>
-              <mdui-switch
-                :checked="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off && !deviceConfig.lbm_smart_enabled"
+              <mdui-switch :checked="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off"
                 @change="handleRelayScheduleBySwitch" :disabled="deviceConfig.lbm_smart_enabled"></mdui-switch>
             </div>
 
-            <mdui-tooltip variant="rich">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                [ LBM Smart ] 智能充电控制
-                <mdui-switch :checked="deviceConfig.lbm_smart_enabled"
-                  @change="(event: Event) => { deviceConfig.lbm_smart_enabled = (event.target as HTMLInputElement).checked; submitConfig(); }"></mdui-switch>
-              </div>
-              <div slot="headline"><strong>[ Large Battery Model ] Smart</strong></div>
-              <div slot="content">通过动态电流感知，自动识别手机电池特性，并实时调整充放电时间。</div>
-            </mdui-tooltip>
             <div class="mdui-typo mdui-typo-title">
               开启时长：
               <a-time-picker v-model:value="relayScheduleText.on" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
@@ -307,12 +331,26 @@ const handleRelayScheduleBySwitch = (event: Event) => {
               <!-- 关闭时的进度条 -->
               <div v-else style="display:flex; flex-direction: column; gap: 10px;">
                 {{ new Date((deviceConfig.relay_schedule_off - (positionInCycle - deviceConfig.relay_schedule_on)) *
-                1000).toISOString().substr(11, 8) }}
+                  1000).toISOString().substr(11, 8) }}
                 后开启
                 <mdui-linear-progress :value="positionInCycle - deviceConfig.relay_schedule_on"
                   :max="deviceConfig.relay_schedule_off">
                 </mdui-linear-progress>
               </div>
+            </div>
+            <mdui-tooltip variant="rich">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                [ LBM Smart ] 智能充电控制
+                <mdui-switch :checked="deviceConfig.lbm_smart_enabled" @change="handleLbmSmartSwitch"></mdui-switch>
+              </div>
+              <div slot="headline"><strong>[ Large Battery Model ] Smart</strong></div>
+              <div slot="content">通过动态电流感知，自动识别手机电池特性，并实时调整充放电时间。</div>
+            </mdui-tooltip>
+            <div v-if="deviceConfig.lbm_smart_enabled" style="display: flex; align-items: center; gap: 8px;">
+              <span>[ LBM Smart ] 状态</span>
+              <mdui-chip style="pointer-events: none;">
+                {{ ['充电中', '耗电中', '准备分析', '分析电池状态中', '未知'][(deviceStatus?.lbm_smart_info ?? 4)] }}
+              </mdui-chip>
             </div>
           </mdui-card-content>
         </mdui-card>
@@ -352,14 +390,15 @@ h2 {
 .schedule-card {
   min-width: 300px;
   max-width: 500px;
+  width: 100%;
 }
 
 /* 媒体查询：在窄屏幕(手机)上占满整个宽度 */
-@media (max-width: 1000px) {
+@media (max-width: 900px) {
   .power-card {
     width: 100% !important;
   }
-  
+
   .power-card .card-content {
     max-width: none !important;
   }
