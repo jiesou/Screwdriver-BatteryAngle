@@ -13,6 +13,7 @@ const deviceConfig = ref<DeviceConfig>({
   relay_schedule_on: 0,
   relay_schedule_off: 0,
   lbm_smart_enabled: false,
+  lbm_smart_upper_ferq: 0,
 });
 const deviceStatus = ref<DeviceStatus | null>(null);
 const wifiNetworks = ref<string[]>([]);
@@ -331,7 +332,7 @@ const handleLbmSmartSwitch = (event: Event) => {
               <!-- 关闭时的进度条 -->
               <div v-else style="display:flex; flex-direction: column; gap: 10px;">
                 {{ new Date((deviceConfig.relay_schedule_off - (positionInCycle - deviceConfig.relay_schedule_on)) *
-                  1000).toISOString().substr(11, 8) }}
+                1000).toISOString().substr(11, 8) }}
                 后开启
                 <mdui-linear-progress :value="positionInCycle - deviceConfig.relay_schedule_on"
                   :max="deviceConfig.relay_schedule_off">
@@ -352,6 +353,9 @@ const handleLbmSmartSwitch = (event: Event) => {
                 {{ ['充电中', '耗电中', '准备分析', '分析电池状态中', '未知'][(deviceStatus?.lbm_smart_info ?? 4)] }}
               </mdui-chip>
             </div>
+            <mdui-text-field v-if="deviceConfig.lbm_smart_enabled" label="[ LBM Smart ] 整定电流" variant="outlined"
+              :value="deviceConfig.lbm_smart_upper_ferq" @input="deviceConfig.lbm_smart_upper_ferq = $event.target.value" @change="submitConfig">
+            </mdui-text-field>
           </mdui-card-content>
         </mdui-card>
       </div>
