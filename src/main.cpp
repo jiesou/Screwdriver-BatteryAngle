@@ -60,21 +60,21 @@ void setup() {
 }
 
 void loop() {
-  if (stored_config.wifi_sta_ssid.length() < 1 && WiFi.isConnected()) {
-    // 如果没有配置 WiFi 信息，且当前连接了 WiFi，断开连接
-    Serial.println("===[Loop] No WiFi config, disconnecting from WiFi===");
-    WiFi.disconnect(true);
-  }
+  // if (stored_config.wifi_sta_ssid.length() < 1 && WiFi.isConnected()) {
+  //   // 如果没有配置 WiFi 信息，且当前连接了 WiFi，断开连接
+  //   Serial.println("===[Loop] No WiFi config, disconnecting from WiFi===");
+  //   WiFi.disconnect(true);
+  // }
   
-  if (stored_config.staConfigRenewed) {
-    // 如果配置了新的 WiFi 信息，尝试连接
-    Serial.println("===[Loop] WiFi config renewed===");
-    Serial.println("Stored: SSID: " + stored_config.wifi_sta_ssid +
-                   ", Password: " + stored_config.wifi_sta_password);
-    stored_config.staConfigRenewed = false;
-    wifiManager.connectToWiFi(stored_config.wifi_sta_ssid,
-                              stored_config.wifi_sta_password);
-  }
+  // if (stored_config.staConfigRenewed) {
+  //   // 如果配置了新的 WiFi 信息，尝试连接
+  //   Serial.println("===[Loop] WiFi config renewed===");
+  //   Serial.println("Stored: SSID: " + stored_config.wifi_sta_ssid +
+  //                  ", Password: " + stored_config.wifi_sta_password);
+  //   stored_config.staConfigRenewed = false;
+  //   wifiManager.connectToWiFi(stored_config.wifi_sta_ssid,
+  //                             stored_config.wifi_sta_password);
+  // }
   otaHandler.update();
   captivePortal.update();
   current_processor.update();

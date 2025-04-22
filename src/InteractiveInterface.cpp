@@ -100,31 +100,31 @@ void InteractiveInterface::handleLedBreathing(unsigned long currentMillis) {
   switch (breathing_state) {
   case BreathingState::FADE_IN:
     // 亮度增加阶段
-    breathing_brightness += 1;
-    if (breathing_brightness >= 255) {
-      breathing_brightness = 255;
+    breathing_brightness += 3;
+    if (breathing_brightness >= 100) {
+      breathing_brightness = 100;
       last_breathing_reversed = currentMillis;
       if (breathing_mode_on) {
-        // 常亮模式：保持最大亮度 breathing_interval
-        breathing_state = BreathingState::HOLD_MAX;
-      } else {
         // 常灭模式：直接进入亮度减少阶段
         breathing_state = BreathingState::FADE_OUT;
+      } else {
+        // 常亮模式：保持最大亮度 breathing_interval
+        breathing_state = BreathingState::HOLD_MAX;
       }
     }
     break;
 
   case BreathingState::FADE_OUT:
     // 亮度减少阶段
-    breathing_brightness -= 1;
+    breathing_brightness -= 3;
     if (breathing_brightness <= 0) {
       breathing_brightness = 0;
       last_breathing_reversed = currentMillis;
 
       if (breathing_mode_on) {
-        breathing_state = BreathingState::FADE_IN;
-      } else {
         breathing_state = BreathingState::HOLD_MIN;
+      } else {
+        breathing_state = BreathingState::FADE_IN;
       }
     }
     break;
@@ -147,7 +147,7 @@ void InteractiveInterface::handleLedBreathing(unsigned long currentMillis) {
     break;
   }
 
-  analogWrite(LED_PIN, map(breathing_brightness, 0, 255, 300, 1023));
+  analogWrite(LED_PIN, map(breathing_brightness, 0, 100, 0, 511));
 }
 
 void InteractiveInterface::updateButtonState() {
@@ -175,8 +175,8 @@ void InteractiveInterface::updateButtonState() {
                (currentMillis - last_button_press < LONG_PRESS_DELAY)) {
       // 检测到短长按 (处于2秒和5秒之间)
       onButtonShortLongPressed();
-      button_state = ButtonState::IDLE;
       button_pressed_down = false;
+      // 这个时候依然要继续检测按住的时间，不能直接进入 IDLE
       break;
     } else if (!current_button &&
                (currentMillis - last_button_press > DEBOUNCE_DELAY)) {
@@ -229,7 +229,7 @@ void InteractiveInterface::onButtonClicked() {
 }
 
 void InteractiveInterface::onButtonDoubleClicked() {
-  led_blink_async(600); // 快速闪烁提示灯
+  led_blink_async(400); // 快速闪烁提示灯
 
   // 双击功能: 切换智能 LBM 模式
   stored_config.lbm_smart_enabled = !stored_config.lbm_smart_enabled;

@@ -367,6 +367,7 @@ const handleLbmSmartSwitch = (event: Event) => {
 <style scoped>
 * {
   font-family: sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 
 h2 {
