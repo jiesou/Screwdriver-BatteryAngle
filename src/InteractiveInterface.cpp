@@ -218,8 +218,7 @@ void InteractiveInterface::onButtonClicked() {
     // 如果正处于周期控制状态，则闪烁提示灯
     led_blink_async(1500);
   } else if (stored_config.lbm_smart_enabled) {
-    // 如果正处于 LBM 智能控制状态，则快速闪烁提示灯，并无论如何切换到充电状态
-    led_blink_async(400);
+    // 如果正处于 LBM 智能控制状态，则无论如何切换到充电状态
     relay_controler.relayState = true; // 切换到充电状态
     relay_controler.lbmState = RelayControler::lbmState::WAITING_RISING;
   } else {
@@ -239,7 +238,7 @@ void InteractiveInterface::onButtonDoubleClicked() {
 
 void InteractiveInterface::onButtonShortLongPressed() {
   // 短按长按功能: 设置继电器整定电流
-  if (relay_controler.relayState) {
+  if (relay_controler.relayState && current_processor.frequency != 0) {
     stored_config.lbm_smart_upper_ferq = current_processor.frequency;
     led_blink_async(400); // 快速闪烁提示灯
     Serial.println("Short long press detected, setting relay current...");

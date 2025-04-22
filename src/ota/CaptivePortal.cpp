@@ -25,7 +25,7 @@ void CaptivePortal::updateStatusChange() {
   unsigned long currentMillis = millis();
   // 每隔 300 毫秒推送一次 status
   // 小于 300 毫秒容易卡住 HTTP 流
-  if (currentMillis - lastPushUpdateTime < 300) return;
+  if (currentMillis - lastPushUpdateTime < 1000) return;
   lastPushUpdateTime = currentMillis;
   // 检查有客户端连接
   if (status_stream_events.count() < 1) return;
@@ -154,6 +154,25 @@ void CaptivePortal::setupRequestHandlers() {
         relay_controler.relayState = (relay_switch == true); // 避免空值
         request->send(200, "application/json", "{\"message\":\"已更新\"}");
       });
+
+  server.on(
+    "/api/get_record", HTTP_GET,
+    [](AsyncWebServerRequest *request) {
+      File file = LittleFS.open("/record.txt", "r");
+      if (!file) {
+        request->send(500, "text/plain", "Failed to open record file");
+        return;
+      }
+
+      String content;
+      while (file.available()) {
+        content += file.readString();
+      }
+      file.close();
+
+      request->send(200, "text/plain", content);
+    }
+  );
 
   server.begin();
 }

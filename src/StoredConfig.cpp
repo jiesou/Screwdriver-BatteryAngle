@@ -69,6 +69,7 @@ void StoredConfig::init() {
 void StoredConfig::clear() {
   Serial.println("[StoredConfig] clear");
   LittleFS.remove(STORED_PATH);
+  LittleFS.remove("/record.txt");
   ESP.restart();
 }
 
