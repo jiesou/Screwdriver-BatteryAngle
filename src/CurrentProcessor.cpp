@@ -18,13 +18,16 @@ void CurrentProcessor::begin() {
   pinMode(CF1_PIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(CF1_PIN),
                   CurrentProcessor::CF1Interrupt, RISING);
-  
-  digitalWrite(SEL_PIN,LOW);
+
+  digitalWrite(SEL_PIN, LOW);
 }
 
 // 检测频率
 void CurrentProcessor::update() {
   unsigned long current_micros = micros();
+
+  if (pulse_interval > 1000000)
+    pulse_interval = 0; // 频率过低，置零
 
   // 时间已超过上次脉冲间隔 + PULSE_EXTRA_TIMEOUT 认定无脉冲
   if (current_micros - last_pulse_micros >
