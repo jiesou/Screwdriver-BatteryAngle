@@ -192,7 +192,7 @@ const handleLbmSmartSwitch = (event: Event) => {
 <template>
   <a-config-provider :locale="zhCN">
     <mdui-top-app-bar>
-      <mdui-top-app-bar-title>BatteryAngle 配置</mdui-top-app-bar-title>
+      <mdui-top-app-bar-title>电池天使 配置</mdui-top-app-bar-title>
       <span style="display: flex; align-items: center;">
         重新连接
         <mdui-button-icon @click="reconnectStatus(); loadConfig();"
