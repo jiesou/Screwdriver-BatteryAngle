@@ -50,7 +50,7 @@ JsonDocument StoredConfig::load() {
   relay_schedule_off = json["relay_schedule_off"].as<unsigned long>();
   lbm_smart_enabled = json["lbm_smart_enabled"].as<bool>();
   lbm_smart_upper_ferq = json["lbm_smart_upper_ferq"].as<float>();
-  lbm_smart_lower_time = json["lbm_smart_lower_time"].as<float>();
+  lbm_smart_lower_time = json["lbm_smart_lower_time"].as<unsigned long>();
   file.close();
 
   Serial.println("[StoredConfig] Config loaded");
@@ -69,7 +69,6 @@ void StoredConfig::init() {
 void StoredConfig::clear() {
   Serial.println("[StoredConfig] clear");
   LittleFS.remove(STORED_PATH);
-  LittleFS.remove("/record.txt");
   ESP.restart();
 }
 

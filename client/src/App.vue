@@ -341,19 +341,19 @@ const handleLbmSmartSwitch = (event: Event) => {
             </div>
             <mdui-tooltip variant="rich">
               <div style="display: flex; align-items: center; gap: 8px;">
-                [ LBM Smart ] 智能充电控制
+                智能充电控制
                 <mdui-switch :checked="deviceConfig.lbm_smart_enabled" @change="handleLbmSmartSwitch"></mdui-switch>
               </div>
-              <div slot="headline"><strong>[ Large Battery Model ] Smart</strong></div>
+              <div slot="headline"><strong>智能充电控制 [ 大电池模型 ]</strong></div>
               <div slot="content">通过动态电流感知，自动识别手机电池特性，并实时调整充放电时间。</div>
             </mdui-tooltip>
             <div v-if="deviceConfig.lbm_smart_enabled" style="display: flex; align-items: center; gap: 8px;">
-              <span>[ LBM Smart ] 状态</span>
+              <span>智能控制状态</span>
               <mdui-chip style="pointer-events: none;">
                 {{ ['充电中', '耗电中', '准备分析', '分析电池状态中', '未知'][(deviceStatus?.lbm_smart_info ?? 4)] }}
               </mdui-chip>
             </div>
-            <mdui-text-field v-if="deviceConfig.lbm_smart_enabled" label="[ LBM Smart ] 整定电流" variant="outlined"
+            <mdui-text-field v-if="deviceConfig.lbm_smart_enabled" label="智能控制基准电流频率" variant="outlined"
               :value="deviceConfig.lbm_smart_upper_ferq" @input="deviceConfig.lbm_smart_upper_ferq = $event.target.value" @change="submitConfig">
             </mdui-text-field>
           </mdui-card-content>

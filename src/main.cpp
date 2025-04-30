@@ -77,34 +77,9 @@ void loop() {
   //   wifiManager.connectToWiFi(stored_config.wifi_sta_ssid,
   //                             stored_config.wifi_sta_password);
   // }
-  unsigned long startTime = millis();
   otaHandler.update();
-  unsigned long otaTime = millis();
   captivePortal.update();
-  unsigned long captiveTime = millis();
   current_processor.update();
-  unsigned long cpTime = millis();
   relay_controler.update();
-  unsigned long relayTime = millis();
   interactive_interface.update();
-  unsigned long interactiveTime = millis();
-
-  // 每隔 1 秒记录一次当前频率
-  unsigned long currentMillis = millis();
-  if (currentMillis - lastRecordTime >= 1000 &&
-      currentMillis <= 86400000) { // 最多记录 24 小时
-    File file = LittleFS.open("/record.txt", "a+");
-    if (file) {
-      file.seek(file.size()); // 将指针移动到文件末尾
-      file.println(String(currentMillis) + "," +
-                   String(current_processor.frequency) + "," +
-                   String(otaTime - startTime) + "," +
-                   String(captiveTime - otaTime) + "," +
-                   String(cpTime - captiveTime) + "," +
-                   String(relayTime - cpTime) + "," +
-                   String(interactiveTime - relayTime));
-      lastRecordTime = currentMillis;
-    }
-    file.close();
-  }
 }

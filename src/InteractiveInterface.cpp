@@ -3,7 +3,6 @@
 #include "RelayControler.h"
 #include "StoredConfig.h"
 #include <Arduino.h>
-#include <LittleFS.h>
 
 void InteractiveInterface::begin() {
   pinMode(LED_PIN, OUTPUT);
