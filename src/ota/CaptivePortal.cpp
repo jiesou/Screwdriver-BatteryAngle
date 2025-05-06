@@ -29,7 +29,7 @@ void CaptivePortal::updateStatusChange()
   unsigned long currentMillis = millis();
   // 每隔 300 毫秒推送一次 status
   // 小于 300 毫秒容易卡住 HTTP 流
-  if (currentMillis - lastPushUpdateTime < 1000)
+  if (currentMillis - lastPushUpdateTime < 300)
     return;
   lastPushUpdateTime = currentMillis;
   // 检查有客户端连接
@@ -41,6 +41,7 @@ void CaptivePortal::updateStatusChange()
   doc["sta_conn_status"] = WiFi.status();
   doc["ip"] = WiFi.localIP().toString();
   doc["frequency"] = current_processor.frequency;
+  doc["frequency_overall"] = current_processor.frequency_overall;
   doc["btn_pressed"] = interactive_interface.button_pressed_down;
   doc["relay_state"] = relay_controler.relayState;
   doc["lbm_smart_info"] = relay_controler.lbmState;

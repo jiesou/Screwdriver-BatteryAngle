@@ -29,13 +29,11 @@ void InteractiveInterface::updateLedState()
     {
     case RelayControler::lbmState::WAITING_RISING:
       // LBM 充电中
-      if (breathing_state == BreathingState::DISABLED)
-        breathing_state = BreathingState::FADE_OUT; // 呼吸灯渐亮
+      breathing_state = BreathingState::FADE_IN; // 呼吸灯渐亮
       break;
     case RelayControler::lbmState::WAITING_DROPPING:
       // LBM 耗电中
-      if (breathing_state == BreathingState::DISABLED)
-        breathing_state = BreathingState::FADE_IN; // 呼吸灯渐暗
+      breathing_state = BreathingState::FADE_OUT; // 呼吸灯渐暗
       break;
     default:
       // 其他状态下 LED 快闪（检查频率中）
@@ -110,27 +108,27 @@ void InteractiveInterface::handleLedBlinking(unsigned long currentMillis)
 
 void InteractiveInterface::handleLedBreathing(unsigned long currentMillis)
 {
-  if (currentMillis - last_breathing_update < 50)
-    return; // 50ms 更新一次呼吸灯
+  if (currentMillis - last_breathing_update < 30)
+    return; // 30ms 更新一次呼吸灯
   last_breathing_update = currentMillis;
 
   switch (breathing_state)
   {
   case BreathingState::FADE_IN:
     // 亮度增加阶段
-    breathing_brightness += 3;
-    if (breathing_brightness >= 200)
+    breathing_brightness += 2;
+    if (breathing_brightness >= 150)
     {
-      breathing_brightness = 50; // 从 50 开始，补偿低亮度
+      breathing_brightness = 70; // 从 50 开始，补偿低亮度
     }
     break;
 
   case BreathingState::FADE_OUT:
     // 亮度减少阶段
-    breathing_brightness -= 1;
-    if (breathing_brightness <= -100)
+    breathing_brightness -= 2;
+    if (breathing_brightness <= -50)
     {
-      breathing_brightness = 100;
+      breathing_brightness = 50; // 从 50 开始，补偿高亮度
     }
     break;
 
@@ -227,6 +225,7 @@ void InteractiveInterface::onButtonClicked()
     led_blink_async(1500);
     // 如果正处于 LBM 智能控制状态，则无论如何切换到检测频率（充电状态）
     relay_controler.relayState = true; // 开启继电器
+    relay_controler.lbmStartTimeOfCheckingFreq = millis();
     relay_controler.lbmState = RelayControler::lbmState::PREPARING_FOR_CHECKING_FREQ;
   }
   else

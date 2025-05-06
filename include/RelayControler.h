@@ -2,6 +2,7 @@
 #define RELAY_PIN 4
 
 #include "StoredConfig.h"
+#include "InteractiveInterface.h"
 
 class RelayControler {
 private:
@@ -13,6 +14,7 @@ private:
   unsigned long lbmLastFoundUpperFerq;
   unsigned long lbmLastTurnon = 0;
   unsigned long lbmStartTimeOfCheckingFreq = 0;
+  friend void InteractiveInterface::onButtonClicked(); // 需要更新 lbmStartTimeOfCheckingFreq
 
 public:
   enum lbmState {

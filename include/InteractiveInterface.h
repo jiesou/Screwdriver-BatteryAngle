@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#pragma once
 
 #define LED_PIN 2
 #define BUTTON_PIN 0
@@ -53,6 +54,7 @@ private:
   void onButtonDoubleClicked();
   void onButtonShortLongPressed();
   void onButtonLongPressed();
+  friend class RelayControler; // 需要与 onButtonClicked() 交友
 
 public:
   void begin();
