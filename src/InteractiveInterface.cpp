@@ -119,7 +119,7 @@ void InteractiveInterface::handleLedBreathing(unsigned long currentMillis)
     breathing_brightness += 2;
     if (breathing_brightness >= 150)
     {
-      breathing_brightness = 70; // 从 50 开始，补偿低亮度
+      breathing_brightness = 30; // 从 30 开始，补偿低亮度
     }
     break;
 
@@ -128,7 +128,7 @@ void InteractiveInterface::handleLedBreathing(unsigned long currentMillis)
     breathing_brightness -= 2;
     if (breathing_brightness <= -50)
     {
-      breathing_brightness = 50; // 从 50 开始，补偿高亮度
+      breathing_brightness = 80; // 从 70 开始，补偿高亮度
     }
     break;
 
@@ -136,7 +136,7 @@ void InteractiveInterface::handleLedBreathing(unsigned long currentMillis)
     break;
   }
 
-  analogWrite(LED_PIN, map(breathing_brightness, 0, 100, 0, 255));
+  analogWrite(LED_PIN, map(breathing_brightness, 0, 100, 255, 0)); // 注意外部上拉
 }
 
 void InteractiveInterface::updateButtonState()
