@@ -4,10 +4,9 @@
 #define BUTTON_PIN 0
 
 #define DEBOUNCE_DELAY 100
-#define DOUBLE_CLICK_DELAY 300
-#define LONG_PRESS_DELAY 5000
+#define DOUBLE_CLICK_DELAY 200
+#define LONG_PRESS_DELAY 10000
 #define SHORT_LONG_PRESS_DELAY 2000
-#define BREATHING_HOLDING_INTERVAL 2000
 
 class InteractiveInterface {
 private:
@@ -42,14 +41,10 @@ private:
     DISABLED,
     FADE_IN,
     FADE_OUT,
-    HOLD_MIN,
-    HOLD_MAX
   };
   BreathingState breathing_state = BreathingState::DISABLED;
-  bool breathing_mode_on = true;
   int breathing_brightness = 0;
   unsigned long last_breathing_update = 0;
-  unsigned long last_breathing_reversed = 0;
 
   void updateLedState();
   void updateButtonState();
