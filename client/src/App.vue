@@ -132,6 +132,7 @@ import '@mdui/icons/refresh.js';
 import '@mdui/icons/wifi.js';
 import '@mdui/icons/wifi-off.js';
 import '@mdui/icons/wifi-find.js';
+import '@mdui/icons/insights.js';
 
 import 'mdui/mdui.css';
 import 'mdui/components/button.js';
@@ -148,7 +149,6 @@ import 'mdui/components/slider.js';
 import 'mdui/components/chip.js';
 import 'mdui/components/linear-progress.js';
 import 'mdui/components/tooltip.js';
-
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
 
 
@@ -171,7 +171,7 @@ const handlePowerSwitchClick = () => {
     return;
   }
   if (deviceConfig.value.lbm_smart_enabled) {
-    snackbar({ message: "提示：智能控制已开启，现在切换电源开关会影响其工作"})
+    snackbar({ message: "提示：智能控制已开启，现在切换电源开关会影响其工作" })
   }
   relaySwitchState.value = !relaySwitchState.value;
   updateRelaySwitch();
@@ -201,7 +201,7 @@ const handleLbmSmartSwitch = (event: Event) => {
         </mdui-button-icon>
       </span>
     </mdui-top-app-bar>
-    <div style="max-width: 1000px; margin: auto; padding: 16px;">
+    <div style="max-width: 1200px; margin: auto; padding: 16px;">
       <div style="display: flex; gap: 16px; flex-wrap: wrap;">
         <!-- 配置卡片 -->
         <!-- <mdui-card class="config-card">
@@ -294,9 +294,36 @@ const handleLbmSmartSwitch = (event: Event) => {
               <mdui-icon-power style="height: 100%; width: 100%; max-width: 15rem;"></mdui-icon-power>
               <mdui-switch checked></mdui-switch>
               <div style="font-size: larger;">已开启</div>
-              <div>频率：{{ deviceStatus?.frequency || '--' }}</div>
+              <div>当前电量表征：{{ deviceStatus?.frequency || '--' }}</div>
             </div>
 
+          </mdui-card-content>
+        </mdui-card>
+
+        <!-- LBM 智能充电控制 -->
+        <mdui-card class="lbm-card">
+          <mdui-card-content class="card-content">
+            <mdui-tooltip variant="rich">
+              <div style="display: flex; justify-content: space-between; align-items: end;">
+                <h2>智能充电控制</h2>
+                <mdui-switch :checked="deviceConfig.lbm_smart_enabled" @change="handleLbmSmartSwitch"></mdui-switch>
+              </div>
+              <div slot="headline"><strong>智能充电控制 [ 大电池模型 ]</strong></div>
+              <div slot="content">通过动态电流感知，自动识别手机电池特性，并实时调整充放电时间。</div>
+            </mdui-tooltip>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <mdui-icon-insights style="margin-left: 8px;"></mdui-icon-insights><span>控制状态</span>
+              <mdui-chip style="pointer-events: none;">
+                {{ ['充电中', '耗电中', '准备分析', '分析电池状态中', '未知'][(deviceStatus?.lbm_smart_info ?? 4)] }}
+              </mdui-chip>
+            </div>
+            <mdui-tooltip variant="rich">
+              <mdui-text-field label="基准电量表征" variant="outlined" :value="deviceConfig.lbm_smart_upper_ferq"
+                @input="deviceConfig.lbm_smart_upper_ferq = $event.target.value" @change="submitConfig">
+              </mdui-text-field>
+              <div slot="headline"><strong>什么是 “基准电量表征”？</strong></div>
+              <div slot="content">一般与所充电的设备电量正相关。智能充电控制 会将设备电量控制在 <strong>基准电量表征</strong> 附近</div>
+            </mdui-tooltip>
           </mdui-card-content>
         </mdui-card>
 
@@ -339,23 +366,6 @@ const handleLbmSmartSwitch = (event: Event) => {
                 </mdui-linear-progress>
               </div>
             </div>
-            <mdui-tooltip variant="rich">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                智能充电控制
-                <mdui-switch :checked="deviceConfig.lbm_smart_enabled" @change="handleLbmSmartSwitch"></mdui-switch>
-              </div>
-              <div slot="headline"><strong>智能充电控制 [ 大电池模型 ]</strong></div>
-              <div slot="content">通过动态电流感知，自动识别手机电池特性，并实时调整充放电时间。</div>
-            </mdui-tooltip>
-            <div v-if="deviceConfig.lbm_smart_enabled" style="display: flex; align-items: center; gap: 8px;">
-              <span>智能控制状态</span>
-              <mdui-chip style="pointer-events: none;">
-                {{ ['充电中', '耗电中', '准备分析', '分析电池状态中', '未知'][(deviceStatus?.lbm_smart_info ?? 4)] }}
-              </mdui-chip>
-            </div>
-            <mdui-text-field v-if="deviceConfig.lbm_smart_enabled" label="智能控制基准电流频率" variant="outlined"
-              :value="deviceConfig.lbm_smart_upper_ferq" @input="deviceConfig.lbm_smart_upper_ferq = $event.target.value" @change="submitConfig">
-            </mdui-text-field>
           </mdui-card-content>
         </mdui-card>
       </div>
@@ -392,11 +402,18 @@ h2 {
   max-width: 500px;
 }
 
-.schedule-card {
+.lbm-card {
   min-width: 300px;
-  max-width: 500px;
+  max-width: 400px;
   width: 100%;
 }
+
+.schedule-card {
+  min-width: 300px;
+  max-width: 400px;
+  width: 100%;
+}
+
 
 /* 媒体查询：在窄屏幕(手机)上占满整个宽度 */
 @media (max-width: 900px) {
