@@ -1,20 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch, computed, watchEffect } from 'vue';
 import { useConfigService } from './services/configService';
 import { useStatusService } from './services/statusService';
-import type { DeviceConfig, DeviceStatus } from './types';
+import { DeviceConfig, DeviceStatus } from './types/device';
 
 import { snackbar } from 'mdui/functions/snackbar.js';
 
+
+
 // 响应式状态
-const deviceConfig = ref<DeviceConfig>({
-  wifi_sta_ssid: '',
-  wifi_sta_password: '',
-  relay_schedule_on: 0,
-  relay_schedule_off: 0,
-  lbm_smart_enabled: false,
-  lbm_smart_upper_ferq: 0,
-});
+const deviceConfig = ref(new DeviceConfig());
 const deviceStatus = ref<DeviceStatus | null>(null);
 const wifiNetworks = ref<string[]>([]);
 const isConnecting = ref<{
@@ -160,11 +155,15 @@ const positionInCycle = computed(() => {
   return elapsedSeconds % cycleDuration;
 });
 
-const handleRelayScheduleBySwitch = (event: Event) => {
-  const isChecked = (event.target as HTMLInputElement).checked;
-  relayScheduleText.value.on = isChecked ? "00:01:00" : "00:00:00";
-  relayScheduleText.value.off = isChecked ? "00:01:00" : "00:00:00";
-};
+const relayScheduleEnabled = computed({
+  get: () => {
+    return deviceConfig.value.relay_schedule_on > 0 && deviceConfig.value.relay_schedule_off > 0;
+  },
+  set: (val: boolean) => {
+    relayScheduleText.value.on = val ? "00:01:00" : "00:00:00";
+    relayScheduleText.value.off = val ? "00:01:00" : "00:00:00";
+  }
+})
 const handlePowerSwitchClick = () => {
   if (deviceConfig.value.relay_schedule_on && deviceConfig.value.relay_schedule_off) {
     snackbar({ message: "周期控制开启时无法切换电源开关" });
@@ -177,16 +176,30 @@ const handlePowerSwitchClick = () => {
   updateRelaySwitch();
   reconnectStatus();
 }
-const handleLbmSmartSwitch = (event: Event) => {
-  const isChecked = (event.target as HTMLInputElement).checked;
-  deviceConfig.value.lbm_smart_enabled = isChecked;
-  relayScheduleText.value.on = "00:00:00";
-  relayScheduleText.value.off = "00:00:00";
-  // 重复提交被节流，导致 string 的更新不触发到 deviceConfig 里，需要自己更新
-  deviceConfig.value.relay_schedule_on = 0;
-  deviceConfig.value.relay_schedule_off = 0;
-  submitConfig();
-};
+const lbmSmartEnabled = computed({
+  get: () => {
+    return deviceConfig.value.lbm_smart_enabled;
+  },
+  set: (val: boolean) => {
+    deviceConfig.value.lbm_smart_enabled = val;
+    relayScheduleText.value.on = "00:00:00";
+    relayScheduleText.value.off = "00:00:00";
+    // 重复提交被节流，导致 string 的更新不触发到 deviceConfig 里，需要自己更新
+    deviceConfig.value.relay_schedule_on = 0;
+    deviceConfig.value.relay_schedule_off = 0;
+    submitConfig();
+  }
+})
+// 电量表征 = 100 / 频率
+const deviceConfigUpperBattLevelFp = computed({
+  get: () => deviceConfig.value.lbm_smart_upper_freq ? Number((100 / deviceConfig.value.lbm_smart_upper_freq).toFixed(2)) : 0,
+  set: (val: string) => {
+    const num = Number(val);
+    if (num > 0) {
+      deviceConfig.value.lbm_smart_upper_freq = Number((100 / num).toFixed(2));
+    }
+  }
+});
 </script>
 
 <template>
@@ -280,21 +293,21 @@ const handleLbmSmartSwitch = (event: Event) => {
 </mdui-card> -->
 
         <!-- 电源控制 -->
-        <mdui-card class="power-card" clickable @click="handlePowerSwitchClick"
-          :disabled="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off">
+        <mdui-card class="power-card" clickable @click="handlePowerSwitchClick" :disabled="relayScheduleEnabled">
           <mdui-card-content class="card-content">
             <h2>电源控制</h2>
             <div v-if="!relaySwitchState" style="display: flex; flex-direction: column; align-items: center;">
               <mdui-icon-power-off style="height: 100%; width: 100%; max-width: 15rem;"></mdui-icon-power-off>
               <mdui-switch></mdui-switch>
               <div style="font-size: larger;">已关闭</div>
-              <div>频率：{{ deviceStatus?.frequency || '--' }}</div>
+              <div>当前电量表征：--</div>
             </div>
             <div v-else style="display: flex; flex-direction: column; align-items: center;">
               <mdui-icon-power style="height: 100%; width: 100%; max-width: 15rem;"></mdui-icon-power>
               <mdui-switch checked></mdui-switch>
               <div style="font-size: larger;">已开启</div>
-              <div>当前电量表征：{{ deviceStatus?.frequency || '--' }}</div>
+              <!-- 电量表征 = 100 / 频率 -->
+              <div>当前电量表征：{{ deviceStatus?.frequency ? (100 / Number(deviceStatus.frequency)).toFixed(2) : '--' }}</div>
             </div>
 
           </mdui-card-content>
@@ -306,20 +319,21 @@ const handleLbmSmartSwitch = (event: Event) => {
             <mdui-tooltip variant="rich">
               <div style="display: flex; justify-content: space-between; align-items: end;">
                 <h2>智能充电控制</h2>
-                <mdui-switch :checked="deviceConfig.lbm_smart_enabled" @change="handleLbmSmartSwitch"></mdui-switch>
+                <mdui-switch :checked="lbmSmartEnabled" @change="lbmSmartEnabled = ($event.target as HTMLInputElement).checked"></mdui-switch>
               </div>
               <div slot="headline"><strong>智能充电控制 [ 大电池模型 ]</strong></div>
               <div slot="content">通过动态电流感知，自动识别手机电池特性，并实时调整充放电时间。</div>
             </mdui-tooltip>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <mdui-icon-insights style="margin-left: 8px;"></mdui-icon-insights><span>控制状态</span>
+              <mdui-icon-insights style="margin-left: 8px;"></mdui-icon-insights>
+              <span>控制状态</span>
               <mdui-chip style="pointer-events: none;">
-                {{ ['充电中', '耗电中', '准备分析', '分析电池状态中', '未知'][(deviceStatus?.lbm_smart_info ?? 4)] }}
+                {{ ['未开启智能控制', '充电中', '耗电中', '准备分析', '分析电池状态中', '未知'][(deviceStatus?.lbm_smart_info ?? 5)] }}
               </mdui-chip>
             </div>
             <mdui-tooltip variant="rich">
-              <mdui-text-field label="基准电量表征" variant="outlined" :value="deviceConfig.lbm_smart_upper_ferq"
-                @input="deviceConfig.lbm_smart_upper_ferq = $event.target.value" @change="submitConfig">
+              <mdui-text-field label="基准电量表征" variant="outlined" :value="deviceConfigUpperBattLevelFp" type="decimal"
+                @input="deviceConfigUpperBattLevelFp = $event.target.value" @change="submitConfig">
               </mdui-text-field>
               <div slot="headline"><strong>什么是 “基准电量表征”？</strong></div>
               <div slot="content">一般与所充电的设备电量正相关。智能充电控制 会将设备电量控制在 <strong>基准电量表征</strong> 附近</div>
@@ -332,8 +346,8 @@ const handleLbmSmartSwitch = (event: Event) => {
           <mdui-card-content class="card-content">
             <div style="display: flex; justify-content: space-between; align-items: end;">
               <h2>周期控制</h2>
-              <mdui-switch :checked="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off"
-                @change="handleRelayScheduleBySwitch" :disabled="deviceConfig.lbm_smart_enabled"></mdui-switch>
+              <mdui-switch :checked="relayScheduleEnabled"
+                @change="relayScheduleEnabled = ($event.target as HTMLInputElement).checked;"></mdui-switch>
             </div>
 
             <div class="mdui-typo mdui-typo-title">
@@ -346,7 +360,7 @@ const handleLbmSmartSwitch = (event: Event) => {
               <a-time-picker v-model:value="relayScheduleText.off" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
                 :showNow="false" :allowClear="false" :disabled="deviceConfig.lbm_smart_enabled" />
             </div>
-            <div v-if="deviceConfig.relay_schedule_on && deviceConfig.relay_schedule_off">
+            <div v-if="relayScheduleEnabled">
               <!-- 开启时的进度条 -->
               <div v-if="positionInCycle < deviceConfig.relay_schedule_on"
                 style="display:flex; flex-direction: column; gap: 10px;">
@@ -359,7 +373,7 @@ const handleLbmSmartSwitch = (event: Event) => {
               <!-- 关闭时的进度条 -->
               <div v-else style="display:flex; flex-direction: column; gap: 10px;">
                 {{ new Date((deviceConfig.relay_schedule_off - (positionInCycle - deviceConfig.relay_schedule_on)) *
-                1000).toISOString().substr(11, 8) }}
+                  1000).toISOString().substr(11, 8) }}
                 后开启
                 <mdui-linear-progress :value="positionInCycle - deviceConfig.relay_schedule_on"
                   :max="deviceConfig.relay_schedule_off">
@@ -424,5 +438,11 @@ h2 {
   .power-card .card-content {
     max-width: none !important;
   }
+}
+
+/* 让 ant-time-picker 贴合 mdui 设计 */
+.ant-picker {
+  background-color: rgb(var(--mdui-color-surface));
+  border-color: rgb(var(--mdui-color-outline));
 }
 </style>

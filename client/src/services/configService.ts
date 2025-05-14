@@ -1,4 +1,4 @@
-import type { DeviceConfig, ApiResponse } from '../types';
+import type { DeviceConfig, ApiResponse } from '../types/device';
 
 export function useConfigService() {
   const fetchConfig = async (): Promise<DeviceConfig> => {

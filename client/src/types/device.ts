@@ -1,10 +1,10 @@
-export interface DeviceConfig {
-  wifi_sta_ssid: string;
-  wifi_sta_password: string;
-  relay_schedule_on: number; // 单位秒。ts 中的 number 是 64 位 IEEE 754 双精度浮点数。esp8266 中采用 unsigned long 是 32 位整数
-  relay_schedule_off: number;
-  lbm_smart_enabled: boolean;
-  lbm_smart_upper_ferq: number;
+export class DeviceConfig {
+  wifi_sta_ssid: string = '';
+  wifi_sta_password: string = '';
+  relay_schedule_on: number = 0;
+  relay_schedule_off: number = 0;
+  lbm_smart_enabled: boolean = false;
+  lbm_smart_upper_freq: number = 0;
 }
 
 enum wl_status_t {
@@ -20,20 +20,21 @@ enum wl_status_t {
 }
 
 enum lbm_state_info {
+  DISABLED,
   WAITING_RISING,
   WAITING_DROPPING,
   PREPARING_FOR_CHECKING_FREQ,
   CHECKING_FREQ_IN_DROPPING,
 }
 
-export interface DeviceStatus {
-  millis: number; // 设备运行时间，单位 毫秒
-  sta_conn_status: wl_status_t;
-  ip?: string;
-  frequency?: string;
-  btn_pressed: boolean;
-  relay_state: boolean;
-  lbm_smart_info: lbm_state_info;
+export class DeviceStatus {
+  millis: number = 0; // 设备运行时间，单位 毫秒
+  sta_conn_status: wl_status_t = wl_status_t.WL_IDLE_STATUS;
+  ip?: string = undefined;
+  frequency?: number = undefined;
+  btn_pressed: boolean = false;
+  relay_state: boolean = true;
+  lbm_smart_info: lbm_state_info = lbm_state_info.WAITING_RISING;
 }
 
 export interface ApiResponse {

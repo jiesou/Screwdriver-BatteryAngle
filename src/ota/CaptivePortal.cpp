@@ -93,7 +93,7 @@ void CaptivePortal::setupRequestHandlers()
         stored_config.relay_schedule_on = jsonObj["relay_schedule_on"].as<unsigned long>();
         stored_config.relay_schedule_off = jsonObj["relay_schedule_off"].as<unsigned long>();
         stored_config.lbm_smart_enabled = jsonObj["lbm_smart_enabled"].as<bool>();
-        stored_config.lbm_smart_upper_ferq = jsonObj["lbm_smart_upper_ferq"].as<float>();
+        stored_config.lbm_smart_upper_freq = jsonObj["lbm_smart_upper_freq"].as<float>();
         stored_config.lbm_smart_lower_time = jsonObj["lbm_smart_lower_time"].as<unsigned long>();
         stored_config.staConfigRenewed = true;
 

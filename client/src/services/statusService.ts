@@ -1,4 +1,4 @@
-import type { DeviceStatus } from '../types';
+import type { DeviceStatus } from '../types/device';
 
 let statusController: AbortController | null = null;
 

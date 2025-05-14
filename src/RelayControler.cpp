@@ -34,13 +34,17 @@ void RelayControler::updateSchedule() {
 }
 
 void RelayControler::updateLbmSmart() {
-  if (!stored_config.lbm_smart_enabled)
+  if (!stored_config.lbm_smart_enabled){
+    lbmState = DISABLED;
     return;
+  } else {
+    lbmState = PREPARING_FOR_CHECKING_FREQ;
+  }
 
   switch (lbmState) {
   case WAITING_RISING:
     // 如果电流频率超过阈值，重置计时器并继续等待
-    if (current_processor.frequency >= stored_config.lbm_smart_upper_ferq) {
+    if (current_processor.frequency >= stored_config.lbm_smart_upper_freq) {
       lbmLastFoundUpperFerq = 0;
       break;
     } else if (lbmLastFoundUpperFerq == 0) {
@@ -73,7 +77,7 @@ void RelayControler::updateLbmSmart() {
     }
     break;
   case CHECKING_FREQ_IN_DROPPING:
-    if (current_processor.frequency > stored_config.lbm_smart_upper_ferq) {
+    if (current_processor.frequency > stored_config.lbm_smart_upper_freq) {
       // 如果电流频率超过 upper（电量已低于预期），则开启，并等待电池充电
       relayState = true;
       lbmState = WAITING_RISING;

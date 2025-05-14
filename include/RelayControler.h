@@ -18,6 +18,7 @@ private:
 
 public:
   enum lbmState {
+    DISABLED,
     WAITING_RISING,
     WAITING_DROPPING,
     PREPARING_FOR_CHECKING_FREQ,

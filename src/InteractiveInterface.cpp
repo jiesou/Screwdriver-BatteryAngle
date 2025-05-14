@@ -250,7 +250,7 @@ void InteractiveInterface::onButtonShortLongPressed()
   // 短长按功能: 设置继电器整定电流
   if (relay_controler.relayState && current_processor.frequency != 0)
   {
-    stored_config.lbm_smart_upper_ferq = current_processor.frequency;
+    stored_config.lbm_smart_upper_freq = current_processor.frequency;
     led_blink_async(400); // 快速闪烁提示灯
     Serial.println("Short long press detected, setting relay current...");
   }
