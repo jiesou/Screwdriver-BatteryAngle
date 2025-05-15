@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed, watchEffect } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useConfigService } from './services/configService';
 import { useStatusService } from './services/statusService';
 import { DeviceConfig, DeviceStatus } from './types/device';
@@ -35,7 +35,7 @@ async function loadConfig() {
 
     deviceConfig.value = { ...deviceConfig.value, ...config };
   } catch (error) {
-    snackbar({ message: '加载配置失败，请检查网络连接或设备状态。' });
+    snackbar({ message: '加载配置失败，请检查网络连接或设备状态。', closeable: true });
     console.error("Error loading config:", error);
   }
 };
@@ -45,7 +45,7 @@ async function loadWifiNetworks() {
   try {
     wifiNetworks.value = await fetchWifiNetworks();
   } catch (error) {
-    snackbar({ message: '加载 WiFi 网络失败，请检查网络连接或设备状态。' });
+    snackbar({ message: '加载 WiFi 网络失败，请检查网络连接或设备状态。', closeable: true });
     console.error("Error loading WiFi networks:", error);
     wifiNetworks.value = [];
   }
@@ -67,7 +67,6 @@ function throttle(func: Function, delay: number) {
 const submitConfig = throttle(async () => {
   try {
     const result = await setConfig(deviceConfig.value);
-    snackbar({ message: result.message });
   } catch (error) {
     snackbar({ message: '配置失败，请检查网络连接或设备状态。' });
     console.error("Error:", error);
@@ -78,7 +77,6 @@ const submitConfig = throttle(async () => {
 async function updateRelaySwitch() {
   try {
     const result = await setRelaySwitch(relaySwitchState.value);
-    snackbar({ message: result.message });
   } catch (error) {
     snackbar({ message: '更新继电器状态失败，请检查网络连接或设备状态。' });
     console.error("Error:", error);
@@ -137,11 +135,11 @@ const positionInCycle = computed(() => {
 
 const handlePowerSwitchClick = () => {
   if (relayScheduleEnabled.value) {
-    snackbar({ message: "周期控制开启时无法切换电源开关" });
+    snackbar({ message: "周期控制开启时无法切换电源开关", closeable: true });
     return;
   }
   if (lbmSmartEnabled.value) {
-    snackbar({ message: "智能控制开启时无法切换电源开关" })
+    snackbar({ message: "智能控制开启时无法切换电源开关", closeable: true })
     return;
   }
   relaySwitchState.value = !relaySwitchState.value;
@@ -380,7 +378,7 @@ const deviceConfigUpperBattLevelFp = computed({
               <!-- 关闭时的进度条 -->
               <div v-else style="display:flex; flex-direction: column; gap: 10px;">
                 {{ new Date((deviceConfig.relay_schedule_off - (positionInCycle - deviceConfig.relay_schedule_on)) *
-                1000).toISOString().substr(11, 8) }}
+                  1000).toISOString().substr(11, 8) }}
                 后开启
                 <mdui-linear-progress :value="positionInCycle - deviceConfig.relay_schedule_on"
                   :max="deviceConfig.relay_schedule_off">
@@ -430,6 +428,7 @@ h2 {
 
 /* 手机样式 */
 @media (max-width: 900px) {
+
   .power-card,
   .control-card {
     max-width: none;
