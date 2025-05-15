@@ -37,7 +37,12 @@ void RelayControler::updateLbmSmart() {
   if (!stored_config.lbm_smart_enabled){
     lbmState = DISABLED;
     return;
-  } else {
+  }
+  else if (lbmState == DISABLED)
+  {
+    // 之前关着，现在开了
+    lbmStartTimeOfCheckingFreq = millis();
+    relayState = true;
     lbmState = PREPARING_FOR_CHECKING_FREQ;
   }
 
@@ -91,6 +96,8 @@ void RelayControler::updateLbmSmart() {
       lbmState = WAITING_DROPPING;
       break;
     }
+  default:
+    break;
   }
 }
 

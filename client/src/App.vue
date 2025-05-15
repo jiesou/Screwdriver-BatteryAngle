@@ -21,29 +21,19 @@ const isConnecting = ref<{
 });
 const wifiDropdownOpen = ref<boolean>(false);
 const relaySwitchState = ref<boolean>(false);
-const relayScheduleText = ref<{
-  on: string
-  off: string
-}>({
-  on: '00:00:00',
-  off: '00:00:00',
-});
 
 // 服务
 const { fetchConfig, setConfig, fetchWifiNetworks, setRelaySwitch } = useConfigService();
 const { connectStatusTo, disconnectStatusService } = useStatusService();
 
 // 加载配置
-const loadConfig = async () => {
+async function loadConfig() {
   try {
     isConnecting.value.config = true;
     const config = await fetchConfig();
     isConnecting.value.config = false;
 
     deviceConfig.value = { ...deviceConfig.value, ...config };
-
-    relayScheduleText.value.on = new Date(deviceConfig.value.relay_schedule_on * 1000).toISOString().slice(11, 19);
-    relayScheduleText.value.off = new Date(deviceConfig.value.relay_schedule_off * 1000).toISOString().slice(11, 19);
   } catch (error) {
     snackbar({ message: '加载配置失败，请检查网络连接或设备状态。' });
     console.error("Error loading config:", error);
@@ -51,7 +41,7 @@ const loadConfig = async () => {
 };
 
 // 加载WiFi网络
-const loadWifiNetworks = async () => {
+async function loadWifiNetworks() {
   try {
     wifiNetworks.value = await fetchWifiNetworks();
   } catch (error) {
@@ -64,7 +54,7 @@ const loadWifiNetworks = async () => {
 
 // 节流
 let lastCall = 0;
-const throttle = (func: Function, delay: number) => {
+function throttle(func: Function, delay: number) {
   return function (...args: any[]) {
     const now = Date.now();
     if (now - lastCall < delay) return;
@@ -85,7 +75,7 @@ const submitConfig = throttle(async () => {
 }, 500);
 
 // 更新继电器开关状态
-const updateRelaySwitch = async () => {
+async function updateRelaySwitch() {
   try {
     const result = await setRelaySwitch(relaySwitchState.value);
     snackbar({ message: result.message });
@@ -96,7 +86,7 @@ const updateRelaySwitch = async () => {
 };
 
 // 重新连接状态
-const reconnectStatus = async () => {
+async function reconnectStatus() {
   isConnecting.value.status = true;
   disconnectStatusService();
 
@@ -106,15 +96,6 @@ const reconnectStatus = async () => {
     relaySwitchState.value = status.relay_state;
   });
 };
-
-// relayScheduleText 数据更新之后自动提交配置
-watch(relayScheduleText.value, (newValue) => {
-  if (newValue.on && newValue.off) {
-    deviceConfig.value.relay_schedule_on = new Date(`1970-01-01T${newValue.on}Z`).getTime() / 1000;
-    deviceConfig.value.relay_schedule_off = new Date(`1970-01-01T${newValue.off}Z`).getTime() / 1000;
-    submitConfig();
-  }
-}, { deep: true });
 
 onMounted(() => {
   reconnectStatus();
@@ -147,7 +128,6 @@ import 'mdui/components/tooltip.js';
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
 
 
-
 const positionInCycle = computed(() => {
   if (!deviceStatus.value || !deviceConfig.value) return 0;
   const cycleDuration = deviceConfig.value.relay_schedule_on + deviceConfig.value.relay_schedule_off;
@@ -155,41 +135,66 @@ const positionInCycle = computed(() => {
   return elapsedSeconds % cycleDuration;
 });
 
-const relayScheduleEnabled = computed({
-  get: () => {
-    return deviceConfig.value.relay_schedule_on > 0 && deviceConfig.value.relay_schedule_off > 0;
-  },
-  set: (val: boolean) => {
-    relayScheduleText.value.on = val ? "00:01:00" : "00:00:00";
-    relayScheduleText.value.off = val ? "00:01:00" : "00:00:00";
-  }
-})
 const handlePowerSwitchClick = () => {
-  if (deviceConfig.value.relay_schedule_on && deviceConfig.value.relay_schedule_off) {
+  if (relayScheduleEnabled.value) {
     snackbar({ message: "周期控制开启时无法切换电源开关" });
     return;
   }
-  if (deviceConfig.value.lbm_smart_enabled) {
-    snackbar({ message: "提示：智能控制已开启，现在切换电源开关会影响其工作" })
+  if (lbmSmartEnabled.value) {
+    snackbar({ message: "智能控制开启时无法切换电源开关" })
+    return;
   }
   relaySwitchState.value = !relaySwitchState.value;
   updateRelaySwitch();
   reconnectStatus();
 }
-const lbmSmartEnabled = computed({
+
+const relayScheduleText = computed({
   get: () => {
-    return deviceConfig.value.lbm_smart_enabled;
+    return {
+      on: new Date(deviceConfig.value.relay_schedule_on * 1000).toISOString().slice(11, 19),
+      off: new Date(deviceConfig.value.relay_schedule_off * 1000).toISOString().slice(11, 19),
+    };
   },
-  set: (val: boolean) => {
-    deviceConfig.value.lbm_smart_enabled = val;
-    relayScheduleText.value.on = "00:00:00";
-    relayScheduleText.value.off = "00:00:00";
-    // 重复提交被节流，导致 string 的更新不触发到 deviceConfig 里，需要自己更新
-    deviceConfig.value.relay_schedule_on = 0;
-    deviceConfig.value.relay_schedule_off = 0;
+  set: (val: { on: string; off: string }) => {
+    deviceConfig.value.relay_schedule_on = new Date(`1970-01-01T${val.on}Z`).getTime() / 1000;
+    deviceConfig.value.relay_schedule_off = new Date(`1970-01-01T${val.off}Z`).getTime() / 1000;
     submitConfig();
   }
-})
+});
+
+
+// 开启关闭周期控制会主动更新 relayScheduleText 周期控制时长
+const relayScheduleEnabled = computed({
+  get: () => {
+    return deviceConfig.value.relay_schedule_on > 0 && deviceConfig.value.relay_schedule_off > 0;
+  },
+  set: (val: boolean) => {
+    if (val) {
+      if (lbmSmartEnabled.value) lbmSmartEnabled.value = false;
+      relayScheduleText.value = {
+        on: "00:01:00",
+        off: "00:01:00",
+      };
+    } else {
+      relayScheduleText.value = {
+        on: "00:00:00",
+        off: "00:00:00",
+      };
+    }
+  }
+});
+const lbmSmartEnabled = computed({
+  get: () => {
+    return (deviceConfig.value.lbm_smart_enabled == true);
+  },
+  set: (val: boolean) => {
+    if (relayScheduleEnabled.value) relayScheduleEnabled.value = false;
+    deviceConfig.value.lbm_smart_enabled = val;
+    // 重复提交被节流，导致 string 的更新不触发到 deviceConfig 里，需要自己更新
+    submitConfig();
+  }
+});
 // 电量表征 = 100 / 频率
 const deviceConfigUpperBattLevelFp = computed({
   get: () => deviceConfig.value.lbm_smart_upper_freq ? Number((100 / deviceConfig.value.lbm_smart_upper_freq).toFixed(2)) : 0,
@@ -293,7 +298,8 @@ const deviceConfigUpperBattLevelFp = computed({
 </mdui-card> -->
 
         <!-- 电源控制 -->
-        <mdui-card class="power-card" clickable @click="handlePowerSwitchClick" :disabled="relayScheduleEnabled">
+        <mdui-card class="power-card" clickable @click="handlePowerSwitchClick"
+          :disabled="relayScheduleEnabled || lbmSmartEnabled">
           <mdui-card-content class="card-content">
             <h2>电源控制</h2>
             <div v-if="!relaySwitchState" style="display: flex; flex-direction: column; align-items: center;">
@@ -304,22 +310,23 @@ const deviceConfigUpperBattLevelFp = computed({
             </div>
             <div v-else style="display: flex; flex-direction: column; align-items: center;">
               <mdui-icon-power style="height: 100%; width: 100%; max-width: 15rem;"></mdui-icon-power>
-              <mdui-switch checked></mdui-switch>
+              <mdui-switch checked :disabled="relayScheduleEnabled || lbmSmartEnabled"></mdui-switch>
               <div style="font-size: larger;">已开启</div>
               <!-- 电量表征 = 100 / 频率 -->
               <div>当前电量表征：{{ deviceStatus?.frequency ? (100 / Number(deviceStatus.frequency)).toFixed(2) : '--' }}</div>
             </div>
-
+            <mdui-chip v-if="lbmSmartEnabled">智能控制开启—单击设备上的按钮来强制充电</mdui-chip>
           </mdui-card-content>
         </mdui-card>
 
         <!-- LBM 智能充电控制 -->
-        <mdui-card class="lbm-card">
+        <mdui-card class="control-card">
           <mdui-card-content class="card-content">
             <mdui-tooltip variant="rich">
               <div style="display: flex; justify-content: space-between; align-items: end;">
                 <h2>智能充电控制</h2>
-                <mdui-switch :checked="lbmSmartEnabled" @change="lbmSmartEnabled = ($event.target as HTMLInputElement).checked"></mdui-switch>
+                <mdui-switch :checked="lbmSmartEnabled"
+                  @change="lbmSmartEnabled = ($event.target as HTMLInputElement).checked"></mdui-switch>
               </div>
               <div slot="headline"><strong>智能充电控制 [ 大电池模型 ]</strong></div>
               <div slot="content">通过动态电流感知，自动识别手机电池特性，并实时调整充放电时间。</div>
@@ -328,7 +335,7 @@ const deviceConfigUpperBattLevelFp = computed({
               <mdui-icon-insights style="margin-left: 8px;"></mdui-icon-insights>
               <span>控制状态</span>
               <mdui-chip style="pointer-events: none;">
-                {{ ['未开启智能控制', '充电中', '耗电中', '准备分析', '分析电池状态中', '未知'][(deviceStatus?.lbm_smart_info ?? 5)] }}
+                {{ ['未开启智能控制', '充电中', '耗电中', '准备分析电池状态', '分析电池状态中', '未知'][(deviceStatus?.lbm_smart_info ?? 5)] }}
               </mdui-chip>
             </div>
             <mdui-tooltip variant="rich">
@@ -342,7 +349,7 @@ const deviceConfigUpperBattLevelFp = computed({
         </mdui-card>
 
         <!-- 周期控制 -->
-        <mdui-card class="schedule-card">
+        <mdui-card class="control-card">
           <mdui-card-content class="card-content">
             <div style="display: flex; justify-content: space-between; align-items: end;">
               <h2>周期控制</h2>
@@ -353,12 +360,12 @@ const deviceConfigUpperBattLevelFp = computed({
             <div class="mdui-typo mdui-typo-title">
               开启时长：
               <a-time-picker v-model:value="relayScheduleText.on" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
-                :showNow="false" :allowClear="false" :disabled="deviceConfig.lbm_smart_enabled" />
+                :showNow="false" :allowClear="false" :disabled="!relayScheduleEnabled" />
             </div>
             <div class="mdui-typo mdui-typo-title">
               关闭时长：
               <a-time-picker v-model:value="relayScheduleText.off" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
-                :showNow="false" :allowClear="false" :disabled="deviceConfig.lbm_smart_enabled" />
+                :showNow="false" :allowClear="false" :disabled="!relayScheduleEnabled" />
             </div>
             <div v-if="relayScheduleEnabled">
               <!-- 开启时的进度条 -->
@@ -373,7 +380,7 @@ const deviceConfigUpperBattLevelFp = computed({
               <!-- 关闭时的进度条 -->
               <div v-else style="display:flex; flex-direction: column; gap: 10px;">
                 {{ new Date((deviceConfig.relay_schedule_off - (positionInCycle - deviceConfig.relay_schedule_on)) *
-                  1000).toISOString().substr(11, 8) }}
+                1000).toISOString().substr(11, 8) }}
                 后开启
                 <mdui-linear-progress :value="positionInCycle - deviceConfig.relay_schedule_on"
                   :max="deviceConfig.relay_schedule_off">
@@ -411,38 +418,35 @@ h2 {
 }
 
 /* 基本样式：在宽屏幕(桌面)上保持固定最大宽度 */
-.power-card {
-  min-width: 300px;
-  max-width: 500px;
-}
-
-.lbm-card {
-  min-width: 300px;
-  max-width: 400px;
+.power-card,
+.control-card {
   width: 100%;
-}
-
-.schedule-card {
-  min-width: 300px;
+  min-width: 280px;
   max-width: 400px;
-  width: 100%;
+  flex-basis: 300px;
+  /* 允许卡片长满空间 */
+  flex-grow: 1;
 }
 
-
-/* 媒体查询：在窄屏幕(手机)上占满整个宽度 */
+/* 手机样式 */
 @media (max-width: 900px) {
-  .power-card {
-    width: 100% !important;
-  }
-
-  .power-card .card-content {
-    max-width: none !important;
+  .power-card,
+  .control-card {
+    max-width: none;
   }
 }
+
 
 /* 让 ant-time-picker 贴合 mdui 设计 */
 .ant-picker {
   background-color: rgb(var(--mdui-color-surface));
   border-color: rgb(var(--mdui-color-outline));
+  color: rgb(var(--mdui-color-on-surface));
+  box-sizing: border-box;
+}
+
+.ant-picker-focused {
+  border-color: rgb(var(--mdui-color-primary));
+  box-shadow: 0 0 0 2px rgba(var(--mdui-color-primary-rgb), 0.2);
 }
 </style>
