@@ -52,26 +52,14 @@ async function loadWifiNetworks() {
 };
 
 
-// 节流
-let lastCall = 0;
-function throttle(func: Function, delay: number) {
-  return function (...args: any[]) {
-    const now = Date.now();
-    if (now - lastCall < delay) return;
-    lastCall = now;
-    return func(...args);
-  };
-};
-
-// 500ms内连续调用只会执行一次
-const submitConfig = throttle(async () => {
+const submitConfig = async () => {
   try {
     const result = await setConfig(deviceConfig.value);
   } catch (error) {
     snackbar({ message: '配置失败，请检查网络连接或设备状态。' });
     console.error("Error:", error);
   }
-}, 500);
+};
 
 // 更新继电器开关状态
 async function updateRelaySwitch() {
