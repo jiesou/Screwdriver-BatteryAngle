@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useConfigService } from './services/configService';
 import { useStatusService } from './services/statusService';
 import { DeviceConfig, DeviceStatus } from './types/device';
@@ -346,12 +346,13 @@ const deviceConfigUpperBattLevelFp = computed({
             <div class="mdui-typo mdui-typo-title">
               开启时长：
               <a-time-picker v-model:value="relayScheduleText.on" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
-                :showNow="false" :allowClear="false" :disabled="!relayScheduleEnabled" />
+              :showNow="false" :allowClear="false" :disabled="!relayScheduleEnabled" @change="relayScheduleText = { ...relayScheduleText }" />
+              <!-- 解决 compute setter 没有 deep，识别不到更新的问题 -->
             </div>
             <div class="mdui-typo mdui-typo-title">
               关闭时长：
               <a-time-picker v-model:value="relayScheduleText.off" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
-                :showNow="false" :allowClear="false" :disabled="!relayScheduleEnabled" />
+                :showNow="false" :allowClear="false" :disabled="!relayScheduleEnabled" @change="relayScheduleText = { ...relayScheduleText }" />
             </div>
             <div v-if="relayScheduleEnabled">
               <!-- 开启时的进度条 -->
