@@ -11,7 +11,7 @@ private:
   void applyHW();
   void updateSchedule();
   void updateLbmSmart();
-  unsigned long lbmLastFoundUpperFerq;
+  unsigned long lbmLastFoundUpperFreq;
   unsigned long lbmLastTurnon = 0;
   unsigned long lbmStartTimeOfCheckingFreq = 0;
   friend void InteractiveInterface::onButtonClicked(); // 需要更新 lbmStartTimeOfCheckingFreq
