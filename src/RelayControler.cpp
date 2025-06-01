@@ -22,7 +22,7 @@ void RelayControler::updateSchedule() {
 
   // relay_schedule_on 和 relay_schedule_off 是秒数
   unsigned long cycleDuration =
-      stored_config.relay_schedule_off + stored_config.relay_schedule_off;
+      stored_config.relay_schedule_on + stored_config.relay_schedule_off;
   unsigned long elapsedSeconds = (millis()) / 1000;
   // millis 溢出后会从 0 重新计数。模运算在数值回绕后依然是有效的
   unsigned long positionInCycle = elapsedSeconds % cycleDuration;
