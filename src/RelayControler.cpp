@@ -50,20 +50,20 @@ void RelayControler::updateLbmSmart() {
   case WAITING_RISING:
     // 如果电流频率超过阈值，重置计时器并继续等待
     if (current_processor.frequency >= stored_config.lbm_smart_upper_freq) {
-      lbmLastFoundUpperFerq = 0;
+      lbmLastFoundUpperFreq = 0;
       break;
-    } else if (lbmLastFoundUpperFerq == 0) {
+    } else if (lbmLastFoundUpperFreq == 0) {
       // 频率低于阈值，开始计时或检查消抖时间
-      lbmLastFoundUpperFerq = millis();
+      lbmLastFoundUpperFreq = millis();
       break;
     }
     // 检查是否满足消抖条件（持续1秒）
-    if (millis() - lbmLastFoundUpperFerq >= 1000) {
+    if (millis() - lbmLastFoundUpperFreq >= 1000) {
       // 频率持续低于阈值，切换状态
       relayState = false;
       lbmLastTurnon = millis();
       lbmState = WAITING_DROPPING;
-      lbmLastFoundUpperFerq = 0;
+      lbmLastFoundUpperFreq = 0;
     }
     break;
   case WAITING_DROPPING:
