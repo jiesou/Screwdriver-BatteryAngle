@@ -208,7 +208,7 @@ const deviceConfigUpperBattLevelFp = computed({
     <div style="max-width: 1200px; margin: auto; padding: 16px;">
       <div style="display: flex; gap: 16px; flex-wrap: wrap;">
         <!-- 配置卡片 -->
-        <!-- <mdui-card class="config-card">
+        <mdui-card class="config-card">
           <mdui-card-content class="card-content">
             <h2>WiFi 配置</h2>
             <span style="display: flex; align-items: center; gap: 8px;">
@@ -216,72 +216,74 @@ const deviceConfigUpperBattLevelFp = computed({
                 <mdui-icon-wifi-find style="color: gray;"></mdui-icon-wifi-find>
                 <span>无状态</span>
               </template>
-<template v-else-if="deviceStatus.sta_conn_status === 3">
+              <template v-else-if="deviceStatus.sta_conn_status === 3">
                 <mdui-icon-wifi style="color: green;"></mdui-icon-wifi>
                 <span>已连接</span>
               </template>
-<template v-else-if="deviceStatus.sta_conn_status === 255">
+              <template v-else-if="deviceStatus.sta_conn_status === 255">
                 <mdui-icon-wifi-off style="color: gray;"></mdui-icon-wifi-off>
                 <span>没有 WiFi shield</span>
               </template>
-<template v-else-if="deviceStatus.sta_conn_status === 0">
+              <template v-else-if="deviceStatus.sta_conn_status === 0">
                 <mdui-icon-wifi-find style="color: chocolate;"></mdui-icon-wifi-find>
                 <span>正在扫描</span>
               </template>
-<template v-else-if="deviceStatus.sta_conn_status === 1">
+              <template v-else-if="deviceStatus.sta_conn_status === 1">
                 <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
                 <span>没有可用 SSID</span>
               </template>
-<template v-else-if="deviceStatus.sta_conn_status === 2">
+              <template v-else-if="deviceStatus.sta_conn_status === 2">
                 <mdui-icon-wifi-find style="color: blue;"></mdui-icon-wifi-find>
                 <span>扫描完成</span>
               </template>
-<template v-else-if="deviceStatus.sta_conn_status === 4">
+              <template v-else-if="deviceStatus.sta_conn_status === 4">
                 <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
                 <span>连接失败</span>
               </template>
-<template v-else-if="deviceStatus.sta_conn_status === 5">
+              <template v-else-if="deviceStatus.sta_conn_status === 5">
                 <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
                 <span>连接丢失</span>
               </template>
-<template v-else-if="deviceStatus.sta_conn_status === 6">
+              <template v-else-if="deviceStatus.sta_conn_status === 6">
                 <mdui-icon-wifi-off style="color: red;"></mdui-icon-wifi-off>
                 <span>已断开连接</span>
               </template>
-<template v-else-if="deviceStatus.sta_conn_status === 7">
+              <template v-else-if="deviceStatus.sta_conn_status === 7">
                 <mdui-icon-wifi-find style="color: gray;"></mdui-icon-wifi-find>
                 <span>正在更新连接</span>
               </template>
-<template v-else>
+              <template v-else>
                 <mdui-icon-wifi-find style="color: gray;"></mdui-icon-wifi-find>
                 <span>处理中</span>
               </template>
-<span>{{ deviceStatus?.ip || '--' }}</span>
-</span>
-<mdui-dropdown trigger="hover" :open="wifiDropdownOpen" @open="loadWifiNetworks">
-  <mdui-text-field slot="trigger" label="WiFi 网络名称（SSID）" variant="outlined" :value="deviceConfig.wifi_sta_ssid"
-    @input="deviceConfig.wifi_sta_ssid = $event.target.value" @focus="wifiDropdownOpen = true">
-  </mdui-text-field>
-  <mdui-menu>
-    <mdui-menu-item v-if="wifiNetworks.length === 0">
-      <mdui-circular-progress class="inline-loader" style="height: 1em;"></mdui-circular-progress>
-      WiFi 扫描中……
-    </mdui-menu-item>
-    <mdui-menu-item v-for="network in wifiNetworks" :key="network" @click="deviceConfig.wifi_sta_ssid = network">
-      {{ network }}
-    </mdui-menu-item>
-  </mdui-menu>
-</mdui-dropdown>
+              <span>{{ deviceStatus?.ip || '--' }}</span>
+            </span>
+            <mdui-dropdown trigger="hover" :open="wifiDropdownOpen" @open="loadWifiNetworks">
+              <mdui-text-field slot="trigger" label="WiFi 网络名称（SSID）" variant="outlined"
+                :value="deviceConfig.wifi_sta_ssid" @input="deviceConfig.wifi_sta_ssid = $event.target.value"
+                @focus="wifiDropdownOpen = true">
+              </mdui-text-field>
+              <mdui-menu>
+                <mdui-menu-item v-if="wifiNetworks.length === 0">
+                  <mdui-circular-progress class="inline-loader" style="height: 1em;"></mdui-circular-progress>
+                  WiFi 扫描中……
+                </mdui-menu-item>
+                <mdui-menu-item v-for="network in wifiNetworks" :key="network"
+                  @click="deviceConfig.wifi_sta_ssid = network">
+                  {{ network }}
+                </mdui-menu-item>
+              </mdui-menu>
+            </mdui-dropdown>
 
-<mdui-text-field label="WiFi 网络密码" type="password" variant="outlined" toggle-password
-  :value="deviceConfig.wifi_sta_password" @input="deviceConfig.wifi_sta_password = $event.target.value">
-</mdui-text-field>
+            <mdui-text-field label="WiFi 网络密码" type="password" variant="outlined" toggle-password
+              :value="deviceConfig.wifi_sta_password" @input="deviceConfig.wifi_sta_password = $event.target.value">
+            </mdui-text-field>
 
-<mdui-button color="primary" variant="filled" @click="submitConfig">
-  应用
-</mdui-button>
-</mdui-card-content>
-</mdui-card> -->
+            <mdui-button color="primary" variant="filled" @click="submitConfig">
+              应用
+            </mdui-button>
+          </mdui-card-content>
+        </mdui-card>
 
         <!-- 电源控制 -->
         <mdui-card class="power-card" clickable @click="handlePowerSwitchClick"
@@ -300,6 +302,7 @@ const deviceConfigUpperBattLevelFp = computed({
               <div style="font-size: larger;">已开启</div>
               <!-- 电量表征 = 100 / 频率 -->
               <div>当前电量表征：{{ deviceStatus?.frequency ? (100 / Number(deviceStatus.frequency)).toFixed(2) : '--' }}</div>
+              <div>功率：{{ deviceStatus?.frequency ? (Number(deviceStatus.frequency) * 19 / 17.12114).toFixed(2) : '--' }} W</div>
             </div>
             <mdui-chip v-if="lbmSmartEnabled">智能控制开启—单击设备上的按钮来强制充电</mdui-chip>
           </mdui-card-content>
@@ -346,13 +349,15 @@ const deviceConfigUpperBattLevelFp = computed({
             <div class="mdui-typo mdui-typo-title">
               开启时长：
               <a-time-picker v-model:value="relayScheduleText.on" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
-              :showNow="false" :allowClear="false" :disabled="!relayScheduleEnabled" @change="relayScheduleText = { ...relayScheduleText }" />
+                :showNow="false" :allowClear="false" :disabled="!relayScheduleEnabled"
+                @change="relayScheduleText = { ...relayScheduleText }" />
               <!-- 解决 compute setter 没有 deep，识别不到更新的问题 -->
             </div>
             <div class="mdui-typo mdui-typo-title">
               关闭时长：
               <a-time-picker v-model:value="relayScheduleText.off" format="HH 时 mm 分 ss 秒" value-format="HH:mm:ss"
-                :showNow="false" :allowClear="false" :disabled="!relayScheduleEnabled" @change="relayScheduleText = { ...relayScheduleText }" />
+                :showNow="false" :allowClear="false" :disabled="!relayScheduleEnabled"
+                @change="relayScheduleText = { ...relayScheduleText }" />
             </div>
             <div v-if="relayScheduleEnabled">
               <!-- 开启时的进度条 -->
