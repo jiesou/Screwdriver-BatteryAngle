@@ -69,6 +69,7 @@ void StoredConfig::init() {
 void StoredConfig::clear() {
   Serial.println("[StoredConfig] clear");
   LittleFS.remove(STORED_PATH);
+  LittleFS.remove("/lbm_model_data.bin"); // 清除 LBM 模型数据（如果存在）
   ESP.restart();
 }
 
