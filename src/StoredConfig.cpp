@@ -58,6 +58,7 @@ JsonDocument StoredConfig::load() {
 }
 
 void StoredConfig::init() {
+  /* WARN: 此处代码不受 OTA 救援模式保护，无论如何都在启动时被执行 */
   Serial.println("[StoredConfig] init");
   load();
   if (wifi_sta_ssid.length() > 0 && wifi_sta_password.length() > 0) {
