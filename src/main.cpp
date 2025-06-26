@@ -14,6 +14,7 @@
 #include "InteractiveInterface.h"
 #include "RelayControler.h"
 #include "StoredConfig.h"
+#include "LBMModelData.h"
 #include "ota/CaptivePortal.h"
 #include "ota/OTAHandler.h"
 #include "ota/wifi/WiFiManager.h"
@@ -23,6 +24,8 @@ AsyncWebServer server(80);
 WiFiManager wifiManager;
 CaptivePortal captivePortal;
 OTAHandler otaHandler;
+
+bool EMERGENCY_MODE = false;
 
 void setup() {
   Serial.begin(74880);
@@ -37,14 +40,24 @@ void setup() {
   Serial.println("===AP started===");
   otaHandler.begin();
   Serial.println("===OTA Service started===");
+  interactive_interface.begin();
+  Serial.println("===Interactive Interface started===");
+  // 救援模式（牺牲启动速度）
+  delay(500); // 上电前 IO0 不能按下，否则就 bootloader 了。所以上电后一段时间再检测
+  Serial.println("===Checking if emergency mode is needed===");
+  if (interactive_interface.isButtonPressed()) {
+    Serial.println("===Emergency mode activated===");
+    EMERGENCY_MODE = true;
+    return; // 不初始化别的模块
+  }
   captivePortal.begin();
   Serial.println("===Captive Portal started===");
   current_processor.begin();
   Serial.println("===Current Processor started===");
   relay_controler.begin();
   Serial.println("===Relay Controler started===");
-  interactive_interface.begin();
-  Serial.println("===Interactive Interface started===");
+  lbm_model_data.begin();
+  Serial.println("===LBM Model Data started===");
 
   wifiManager.onConnect([]() {
     Serial.println("Connected to WiFi");
@@ -78,8 +91,13 @@ void loop() {
                               stored_config.wifi_sta_password);
   }
   otaHandler.update();
+  if (EMERGENCY_MODE) {
+    // 救援模式下不执行其他操作
+    return;
+  }
+  interactive_interface.update();
   captivePortal.update();
   current_processor.update();
   relay_controler.update();
-  interactive_interface.update();
+  lbm_model_data.update();
 }

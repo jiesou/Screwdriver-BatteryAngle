@@ -59,6 +59,9 @@ private:
 public:
   void begin();
   void update();
+  bool isButtonPressed() const {
+    return digitalRead(BUTTON_PIN) == LOW;
+  }
 
   void led_blink_async(unsigned int duration);
 
