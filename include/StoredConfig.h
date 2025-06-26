@@ -18,8 +18,8 @@ public:
   String wifi_sta_password = "";
   unsigned long relay_schedule_on = 0;
   unsigned long relay_schedule_off = 0;
-  bool lbm_smart_enabled = false;
-  float lbm_smart_upper_freq = 3.2;
+  bool lbm_smart_enabled = true;
+  float lbm_smart_upper_freq = -1.0f; // 默认 -1（无效）。LBM Model Data 需要学习来确定的一个上限频率
   unsigned long lbm_smart_lower_time = 1000*60*60*3; // 3小时
   
   bool relayState = true;

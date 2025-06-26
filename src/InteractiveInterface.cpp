@@ -27,6 +27,16 @@ void InteractiveInterface::updateLedState()
   {
     switch (relay_controler.lbmState)
     {
+    case RelayControler::lbmState::TO_LEARN_MODELDATA:
+      // LBM 需要学习 ModelData
+      breathing_state = BreathingState::DISABLED;
+      led_state = millis() % 3000 < 1500; /// LED 慢闪
+      break;
+    case RelayControler::lbmState::LEARNING_MODELDATA:
+      // LBM 正在学习 ModelData
+      breathing_state = BreathingState::DISABLED;
+      led_state = millis() % 2000 < 1800; /// LED 慢闪（亮的成分更多）
+      break;
     case RelayControler::lbmState::WAITING_RISING:
       // LBM 充电中
       breathing_state = BreathingState::FADE_IN; // 呼吸灯渐亮
@@ -247,14 +257,8 @@ void InteractiveInterface::onButtonDoubleClicked()
 
 void InteractiveInterface::onButtonShortLongPressed()
 {
-  // 短长按功能: 设置继电器整定电流
-  if (relay_controler.relayState && current_processor.frequency != 0)
-  {
-    stored_config.lbm_smart_upper_freq = current_processor.frequency;
-    led_blink_async(400); // 快速闪烁提示灯
-    Serial.println("Short long press detected, setting relay current...");
-  }
-  stored_config.save();
+  // 短长按功能: 恢复出厂设置
+  onButtonLongPressed();
 }
 
 void InteractiveInterface::onButtonLongPressed()

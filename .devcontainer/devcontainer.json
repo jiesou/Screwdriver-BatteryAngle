@@ -34,7 +34,7 @@
 	// ],
 	// "containerUser": "node",
 	// "updateRemoteUserUID": true
-
+	"privileged": true,
 	"runArgs": [
 		"--network",
 		"host" // for PlatformIO OTA

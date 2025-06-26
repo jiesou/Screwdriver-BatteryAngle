@@ -22,7 +22,7 @@ public:
   volatile unsigned long pulse_interval; // ms
 
   volatile float frequency;
-  float frequency_overall = 0.0;
+  float frequency_overall = 0.0f;
   float frequency_samples[FREQ_BUFFER_SIZE];
   unsigned int sample_index = 0;
   unsigned long last_sample_time = 0;

@@ -20,8 +20,9 @@ bool StoredConfig::save() {
   json["lbm_smart_lower_time"] = lbm_smart_lower_time;
   serializeJson(json, file);
   file.close();
-
-  Serial.println("[StoredConfig] Config saved");
+  
+  Serial.printf("[StoredConfig] Config saved  upper_freq: %.2f\n",
+                   lbm_smart_upper_freq);
   return true;
 }
 
@@ -29,7 +30,7 @@ JsonDocument StoredConfig::load() {
   if (!LittleFS.exists(STORED_PATH)) {
     Serial.println(
         "[StoredConfig] No Config file found, saving default configuration");
-    // return current(empty) json
+    // return current(default) json
     save();
     return json;
   }
@@ -53,7 +54,8 @@ JsonDocument StoredConfig::load() {
   lbm_smart_lower_time = json["lbm_smart_lower_time"].as<unsigned long>();
   file.close();
 
-  Serial.println("[StoredConfig] Config loaded");
+  Serial.println("[StoredConfig] Config loaded, upper_freq: " +
+                    String(json["lbm_smart_upper_freq"]));
   return json;
 }
 
@@ -65,12 +67,14 @@ void StoredConfig::init() {
     // 如果读出了 ssid 和 password 的配置，那就可以尝试连接
     staConfigRenewed = true;
   }
+  Serial.printf("[StoredConfig] Initial lbm_smart_upper_freq: %.2f\n",
+                   lbm_smart_upper_freq);
 }
 
 void StoredConfig::clear() {
   Serial.println("[StoredConfig] clear");
   LittleFS.remove(STORED_PATH);
-  LittleFS.remove("/lbm_model_data.bin"); // 清除 LBM 模型数据（如果存在）
+  LittleFS.remove("/lbm_model_data.bin");  // 清除 LBM 模型数据（如果存在）
   ESP.restart();
 }
 

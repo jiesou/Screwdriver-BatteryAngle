@@ -33,6 +33,7 @@ void CurrentProcessor::update() {
   if (current_micros - last_pulse_micros >
       pulse_interval + PULSE_EXTRA_TIMEOUT) {
     frequency = 0; // 无脉冲时频率置零
+    frequency_overall = 0.0f;
     return;
   }
 

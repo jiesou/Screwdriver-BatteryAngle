@@ -21,10 +21,11 @@ enum wl_status_t {
 
 enum lbm_state_info {
   DISABLED,
+  LEARNING_MODELDATA,
   WAITING_RISING,
   WAITING_DROPPING,
   PREPARING_FOR_CHECKING_FREQ,
-  CHECKING_FREQ_IN_DROPPING,
+  CHECKING_FREQ_IN_DROPPING
 }
 
 export class DeviceStatus {

@@ -324,7 +324,7 @@ const deviceConfigUpperBattLevelFp = computed({
               <mdui-icon-insights style="margin-left: 8px;"></mdui-icon-insights>
               <span>控制状态</span>
               <mdui-chip style="pointer-events: none;">
-                {{ ['未开启智能控制', '充电中', '耗电中', '准备分析电池状态', '分析电池状态中', '未知'][(deviceStatus?.lbm_smart_info ?? 5)] }}
+                {{ ['未开启智能控制', '等待学习，请插入设备', '学习中，设备需要从 0% 开始完全充到 100%', '充电中', '耗电中', '准备分析电池状态', '分析电池状态中', '未知'][(deviceStatus?.lbm_smart_info ?? 7)] }}
               </mdui-chip>
             </div>
             <mdui-tooltip variant="rich">

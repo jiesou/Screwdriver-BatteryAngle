@@ -10,6 +10,7 @@
 #include "ESPAsyncWebServer.h"
 #include "LittleFS.h"
 
+#include "UDPLogger.h"
 #include "CurrentProcessor.h"
 #include "InteractiveInterface.h"
 #include "RelayControler.h"
@@ -58,6 +59,8 @@ void setup() {
   Serial.println("===Relay Controler started===");
   lbm_model_data.begin();
   Serial.println("===LBM Model Data started===");
+  udpLogger.begin();
+  Serial.println("===UDPLogger started===");
 
   wifiManager.onConnect([]() {
     Serial.println("Connected to WiFi");

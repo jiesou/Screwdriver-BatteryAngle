@@ -1,5 +1,6 @@
 #pragma once
-#define STORED_PATH "/lbm_model_data.bin"
+#include <LittleFS.h>
+#define MODEL_DATA_PATH "/lbm_model_data.bin"
 
 class LBMModelData
 {
@@ -15,6 +16,11 @@ private:
 public:
     void begin();
     void update();
+    void reset() {
+        lbmModelDataState = DISABLED;
+        last_record_time = 0;
+        LittleFS.remove(MODEL_DATA_PATH);
+    }
     void start();
     float finish();
 };

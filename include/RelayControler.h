@@ -17,13 +17,16 @@ private:
   friend void InteractiveInterface::onButtonClicked(); // 需要更新 lbmStartTimeOfCheckingFreq
 
 public:
-  enum lbmState {
+  enum lbmState
+  {
     DISABLED,
+    TO_LEARN_MODELDATA, // 需要学习 ModelData
+    LEARNING_MODELDATA,
     WAITING_RISING,
     WAITING_DROPPING,
     PREPARING_FOR_CHECKING_FREQ,
     CHECKING_FREQ_IN_DROPPING
-  } lbmState = WAITING_RISING;
+  } lbmState = PREPARING_FOR_CHECKING_FREQ; // 默认上电，就因为 upper 是无效的 -1.0f，就会自动触发 ModelData 学习。这里不用考虑
   void begin();
   void update();
 
