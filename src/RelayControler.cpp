@@ -6,6 +6,8 @@
 #include "UDPLogger.h"
 #include <Arduino.h>
 
+#define BATTERY_FULL_FREQ_THRESHOLD 0.1f // 认为电池满电的频率阈值
+
 void RelayControler::begin()
 {
   pinMode(RELAY_PIN, OUTPUT);
@@ -67,7 +69,7 @@ void RelayControler::updateLbmSmart()
   switch (lbmState)
   {
   case TO_LEARN_MODELDATA:
-    if (current_processor.frequency_overall >= 0.2f)
+    if (current_processor.frequency_overall >= 0.4f)
     {
       // 检测到设备开始充电，则开始学习 ModelData
       udpLogger.println("[RelayControler] LBM Model Data learning started.");
@@ -78,15 +80,30 @@ void RelayControler::updateLbmSmart()
     break;
   case LEARNING_MODELDATA:
     // 在学习，则检查是不是需要结束学习（已经完全充满了）
-    // 频率接近 0，认为设备已充满
-    if (current_processor.frequency <= 0.1f && 0.0f <= current_processor.frequency)
+    // 频率持续接近 0（小于 BATTERY_FULL_FREQ_THRESHOLD），才认为设备已充满
+    // 如果电流频率超过阈值，重置计时器并继续等待
+    if (current_processor.frequency >= BATTERY_FULL_FREQ_THRESHOLD)
     {
+      lbmLastFoundUpperFreq = 0;
+      break;
+    }
+    else if (lbmLastFoundUpperFreq == 0)
+    {
+      // 频率低于阈值，开始计时或检查消抖时间
+      lbmLastFoundUpperFreq = millis();
+      break;
+    }
+    // 检查是否满足消抖条件（持续 1 秒）
+    if (millis() - lbmLastFoundUpperFreq >= 1000)
+    {
+      // 频率持续低于阈值，认为设备已充满
       // 完成学习，确定 modelData
       stored_config.lbm_smart_upper_freq = lbm_model_data.finish();
       stored_config.save();
       udpLogger.println("[RelayControler] LBM Model Data learning finished, upper_freq: " +
                         String(stored_config.lbm_smart_upper_freq));
       // 开始放电
+      relayState = false;
       lbmLastTurnon = millis();
       lbmState = WAITING_DROPPING;
       lbmLastFoundUpperFreq = 0;
