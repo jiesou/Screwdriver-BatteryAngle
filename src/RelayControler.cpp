@@ -6,7 +6,7 @@
 #include "UDPLogger.h"
 #include <Arduino.h>
 
-#define BATTERY_FULL_FREQ_THRESHOLD 0.1f // 认为电池满电的频率阈值
+#define BATTERY_FULL_FREQ_THRESHOLD 2.5f // 认为电池满电的频率阈值，差不多是 2.7w
 
 void RelayControler::begin()
 {
